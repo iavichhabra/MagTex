@@ -5,11 +5,12 @@ import { useAccount, useWalletClient } from "wagmi";
 import { parseEther } from "viem";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Upload, Lock, FileText, AlertCircle, CheckCircle } from "lucide-react";
+import { Lock, FileText, CheckCircle } from "lucide-react";
 import { ReportMetadata, Category, Severity } from "@/types";
 import { generateAESKey, exportAESKey, encryptFile } from "@/lib/crypto";
 import { uploadJSONToIPFS, uploadFileToIPFS } from "@/lib/ipfs";
 import { VULNVAULT_REGISTRY, VULNVAULT_ABI } from "@/lib/contracts";
+import { storyAeneid } from "@/lib/chains";
 
 const CATEGORIES: Category[] = [
   "Critical Vulnerability",
@@ -24,6 +25,15 @@ const CATEGORIES: Category[] = [
 ];
 
 const SEVERITIES: Severity[] = ["Critical", "High", "Medium", "Low", "Informational"];
+
+// Browser-safe base64 encoding (no Node.js Buffer needed)
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
 
 export function ReportForm() {
   const { address } = useAccount();
@@ -47,25 +57,43 @@ export function ReportForm() {
   const [error, setError] = useState("");
 
   const handleSubmit = async () => {
-    if (!walletClient || !address || !file) return;
+    if (!walletClient || !address) {
+      setError("Please connect your wallet first.");
+      return;
+    }
+    if (!file) {
+      setError("Please upload a report file.");
+      return;
+    }
+    if (!metadata.title || !metadata.abstract) {
+      setError("Title and Abstract are required.");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
     try {
-      // Step 2: Generate AES key & encrypt file locally
+      // Step 2: Generate AES-256 key & encrypt the file locally in the browser
       setStep(2);
       const aesKey = await generateAESKey();
       const { ciphertext, iv } = await encryptFile(file, aesKey);
       const keyData = await exportAESKey(aesKey);
 
-      // Step 3: Upload encrypted file to IPFS
+      // Step 3: Upload the encrypted file blob to IPFS via Pinata
       setStep(3);
       const encryptedBlob = new Blob([new Uint8Array(iv), new Uint8Array(ciphertext)]);
       const encryptedFile = new File([encryptedBlob], `${file.name}.encrypted`);
-      const fileHash = await uploadFileToIPFS(encryptedFile);
 
-      // Step 4: Create vault payload and upload to IPFS as the CDR vault
-      // Instead of relying on external CDR node, we store the vault securely on IPFS
+      let fileHash: string;
+      try {
+        fileHash = await uploadFileToIPFS(encryptedFile);
+      } catch (ipfsErr: any) {
+        throw new Error(`IPFS file upload failed: ${ipfsErr?.message || "Unknown error"}. Check your Pinata API key.`);
+      }
+
+      // Step 4: Create the encrypted vault payload and upload to IPFS
+      // Uses browser-native btoa() instead of Node.js Buffer
       setStep(4);
       const vaultPayload = JSON.stringify({
         key: Array.from(keyData),
@@ -73,31 +101,40 @@ export function ReportForm() {
         fileHash,
         filename: file.name,
       });
-      const vaultHash = await uploadJSONToIPFS({
-        encryptedVault: Buffer.from(vaultPayload).toString("base64"),
-        seller: address,
-        timestamp: Date.now(),
-      });
+      const vaultPayloadBytes = new TextEncoder().encode(vaultPayload);
+      const vaultPayloadBase64 = uint8ArrayToBase64(vaultPayloadBytes);
 
-      // Step 5: Upload metadata and NFT metadata to IPFS
+      let vaultHash: string;
+      try {
+        vaultHash = await uploadJSONToIPFS({
+          encryptedVault: vaultPayloadBase64,
+          seller: address,
+          timestamp: Date.now(),
+        });
+      } catch (vaultErr: any) {
+        throw new Error(`Vault IPFS upload failed: ${vaultErr?.message || "Unknown error"}`);
+      }
+
+      // Step 5: Upload listing metadata to IPFS
       setStep(5);
-      const metadataPayload = {
-        ...metadata,
-        abstract: metadata.abstract,
-        fullReportHash: vaultHash,
-        fileHash,
-        seller: address,
-      };
-      const metadataHash = await uploadJSONToIPFS(metadataPayload);
+      let metadataHash: string;
+      try {
+        metadataHash = await uploadJSONToIPFS({
+          ...metadata,
+          fullReportHash: vaultHash,
+          fileHash,
+          seller: address,
+        });
+      } catch (metaErr: any) {
+        throw new Error(`Metadata IPFS upload failed: ${metaErr?.message || "Unknown error"}`);
+      }
 
-      // Step 6: List report on-chain via the VulnVaultRegistry smart contract
+      // Step 6: Call listReport on the VulnVaultRegistry smart contract
       setStep(6);
-
-      // Use the zero address as ipId placeholder since Story Protocol SDK
-      // registration requires a running IP testnet node
       const ipId = "0x0000000000000000000000000000000000000001" as `0x${string}`;
 
       const tx = await walletClient.writeContract({
+        chain: storyAeneid,
         address: VULNVAULT_REGISTRY,
         abi: VULNVAULT_ABI,
         functionName: "listReport",
@@ -115,7 +152,12 @@ export function ReportForm() {
       setTimeout(() => router.push("/marketplace"), 3000);
     } catch (err: any) {
       console.error("Submit error:", err);
-      const msg = err?.shortMessage || err?.message || "Transaction failed";
+      // Extract the most useful error message
+      const msg =
+        err?.shortMessage ||
+        err?.details ||
+        err?.message ||
+        "Transaction failed. Please try again.";
       setError(msg);
       setStep(1);
     } finally {
@@ -143,7 +185,7 @@ export function ReportForm() {
 
       {error && (
         <div className="mb-4 border border-red-800 bg-red-950/50 p-3 font-mono text-xs text-red-400">
-          <span className="font-bold">ERROR:</span> {error}
+          <span className="font-bold">ERROR: </span>{error}
         </div>
       )}
 
@@ -274,7 +316,7 @@ export function ReportForm() {
             disabled={!metadata.title || !file || !metadata.abstract || loading}
             className="w-full border border-vault-white bg-vault-white py-3 font-mono text-sm font-bold text-vault-black hover:bg-vault-gray-200 disabled:opacity-30"
           >
-            ENCRYPT & PUBLISH
+            {loading ? "PROCESSING..." : "ENCRYPT & PUBLISH"}
           </button>
         </motion.div>
       )}
