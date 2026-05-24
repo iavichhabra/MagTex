@@ -17,7 +17,7 @@ export function IntroAnimation({ onComplete }: { onComplete: () => void }) {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    const bootTimer = setTimeout(() => setPhase("messages"), 2500);
+    const bootTimer = setTimeout(() => setPhase("messages"), 1200);
     return () => clearTimeout(bootTimer);
   }, []);
 
@@ -27,12 +27,12 @@ export function IntroAnimation({ onComplete }: { onComplete: () => void }) {
       setMessageIndex((prev) => {
         if (prev >= MESSAGES.length - 1) {
           clearInterval(interval);
-          setTimeout(() => setPhase("exit"), 800);
+          setTimeout(() => setPhase("exit"), 400);
           return prev;
         }
         return prev + 1;
       });
-    }, 1200);
+    }, 700);
     return () => clearInterval(interval);
   }, [phase]);
 
@@ -41,7 +41,7 @@ export function IntroAnimation({ onComplete }: { onComplete: () => void }) {
       const timer = setTimeout(() => {
         setVisible(false);
         onComplete();
-      }, 1000);
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, [phase, onComplete]);
@@ -66,7 +66,7 @@ export function IntroAnimation({ onComplete }: { onComplete: () => void }) {
             </h1>
             <div className="mt-4 h-px w-48 mx-auto bg-gradient-to-r from-transparent via-vault-gray-500 to-transparent" />
             <p className="mt-4 font-mono text-xs text-vault-gray-400 animate-pulse">
-              INITIALIZING CDR KERNEL...
+              DISCLOSURE WITHOUT EXPOSURE
             </p>
           </div>
         )}

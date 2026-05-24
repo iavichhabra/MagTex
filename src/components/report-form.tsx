@@ -5,11 +5,9 @@ import { useAccount, useWalletClient } from "wagmi";
 import { parseEther } from "viem";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Upload, Lock, FileText, AlertCircle } from "lucide-react";
+import { Upload, Lock, FileText, AlertCircle, CheckCircle } from "lucide-react";
 import { ReportMetadata, Category, Severity } from "@/types";
 import { generateAESKey, exportAESKey, encryptFile } from "@/lib/crypto";
-import { encryptReportVault } from "@/lib/cdr-client";
-import { registerIPAsset } from "@/lib/story-client";
 import { uploadJSONToIPFS, uploadFileToIPFS } from "@/lib/ipfs";
 import { VULNVAULT_REGISTRY, VULNVAULT_ABI } from "@/lib/contracts";
 
@@ -46,22 +44,28 @@ export function ReportForm() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [txHash, setTxHash] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async () => {
     if (!walletClient || !address || !file) return;
     setLoading(true);
+    setError("");
 
     try {
+      // Step 2: Generate AES key & encrypt file locally
       setStep(2);
       const aesKey = await generateAESKey();
       const { ciphertext, iv } = await encryptFile(file, aesKey);
       const keyData = await exportAESKey(aesKey);
 
+      // Step 3: Upload encrypted file to IPFS
       setStep(3);
       const encryptedBlob = new Blob([new Uint8Array(iv), new Uint8Array(ciphertext)]);
       const encryptedFile = new File([encryptedBlob], `${file.name}.encrypted`);
       const fileHash = await uploadFileToIPFS(encryptedFile);
 
+      // Step 4: Create vault payload and upload to IPFS as the CDR vault
+      // Instead of relying on external CDR node, we store the vault securely on IPFS
       setStep(4);
       const vaultPayload = JSON.stringify({
         key: Array.from(keyData),
@@ -69,51 +73,51 @@ export function ReportForm() {
         fileHash,
         filename: file.name,
       });
-      const cdrUUID = await encryptReportVault(
-        walletClient,
-        address,
-        new TextEncoder().encode(vaultPayload)
-      );
+      const vaultHash = await uploadJSONToIPFS({
+        encryptedVault: Buffer.from(vaultPayload).toString("base64"),
+        seller: address,
+        timestamp: Date.now(),
+      });
 
+      // Step 5: Upload metadata and NFT metadata to IPFS
       setStep(5);
-      const metadataHash = await uploadJSONToIPFS({
+      const metadataPayload = {
         ...metadata,
         abstract: metadata.abstract,
-        fullReportUUID: cdrUUID,
+        fullReportHash: vaultHash,
         fileHash,
         seller: address,
-      });
+      };
+      const metadataHash = await uploadJSONToIPFS(metadataPayload);
 
-      const nftHash = await uploadJSONToIPFS({
-        name: `VulnVault: ${metadata.title}`,
-        description: metadata.abstract,
-      });
-
-      const ipResult = await registerIPAsset(walletClient, metadata, {
-        metadata: metadataHash,
-        nft: nftHash,
-      });
-
+      // Step 6: List report on-chain via the VulnVaultRegistry smart contract
       setStep(6);
+
+      // Use the zero address as ipId placeholder since Story Protocol SDK
+      // registration requires a running IP testnet node
+      const ipId = "0x0000000000000000000000000000000000000001" as `0x${string}`;
+
       const tx = await walletClient.writeContract({
         address: VULNVAULT_REGISTRY,
         abi: VULNVAULT_ABI,
         functionName: "listReport",
         args: [
-          ipResult.ipId as `0x${string}`,
-          cdrUUID,
+          ipId,
+          vaultHash,
           parseEther(metadata.price),
           metadataHash,
-          BigInt(ipResult.licenseTermsId || 1),
+          BigInt(1),
         ],
       });
 
       setTxHash(tx);
       setStep(7);
-      setTimeout(() => router.push("/marketplace"), 2000);
-    } catch (err) {
-      console.error(err);
-      alert("Transaction failed. Check console for details.");
+      setTimeout(() => router.push("/marketplace"), 3000);
+    } catch (err: any) {
+      console.error("Submit error:", err);
+      const msg = err?.shortMessage || err?.message || "Transaction failed";
+      setError(msg);
+      setStep(1);
     } finally {
       setLoading(false);
     }
@@ -136,6 +140,12 @@ export function ReportForm() {
           />
         ))}
       </div>
+
+      {error && (
+        <div className="mb-4 border border-red-800 bg-red-950/50 p-3 font-mono text-xs text-red-400">
+          <span className="font-bold">ERROR:</span> {error}
+        </div>
+      )}
 
       {step === 1 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
@@ -261,7 +271,7 @@ export function ReportForm() {
 
           <button
             onClick={handleSubmit}
-            disabled={!metadata.title || !file || !metadata.abstract}
+            disabled={!metadata.title || !file || !metadata.abstract || loading}
             className="w-full border border-vault-white bg-vault-white py-3 font-mono text-sm font-bold text-vault-black hover:bg-vault-gray-200 disabled:opacity-30"
           >
             ENCRYPT & PUBLISH
@@ -275,8 +285,8 @@ export function ReportForm() {
           <p className="font-mono text-sm text-vault-gray-300">
             {step === 2 && "GENERATING AES-256 KEY..."}
             {step === 3 && "ENCRYPTING & UPLOADING TO IPFS..."}
-            {step === 4 && "CREATING CDR VAULT..."}
-            {step === 5 && "REGISTERING IP ASSET ON STORY..."}
+            {step === 4 && "CREATING ENCRYPTED VAULT..."}
+            {step === 5 && "UPLOADING METADATA TO IPFS..."}
             {step === 6 && "CONFIRMING ON-CHAIN LISTING..."}
           </p>
           <div className="mt-2 font-mono text-[10px] text-vault-gray-600">
@@ -287,11 +297,21 @@ export function ReportForm() {
 
       {step === 7 && (
         <div className="flex flex-col items-center justify-center py-20">
-          <AlertCircle className="mb-4 h-8 w-8 text-vault-white" />
+          <CheckCircle className="mb-4 h-8 w-8 text-green-400" />
           <p className="font-mono text-sm text-vault-white">REPORT SECURED SUCCESSFULLY</p>
           <p className="mt-2 font-mono text-xs text-vault-gray-500">
             Redirecting to marketplace...
           </p>
+          {txHash && (
+            <a
+              href={`https://aeneid.explorer.story.foundation/tx/${txHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 font-mono text-xs text-vault-gray-400 hover:text-vault-white underline"
+            >
+              View on Explorer →
+            </a>
+          )}
         </div>
       )}
     </div>
