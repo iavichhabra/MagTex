@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-vault-black text-vault-white;
+  }
+
+  ::selection {
+    @apply bg-vault-white text-vault-black;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-vault-black;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-vault-gray-800;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-vault-gray-600;
+  }
+}
+
+@layer components {
+  .terminal-border {
+    @apply border border-vault-gray-800 hover:border-vault-gray-600 transition-colors;
+  }
+
+  .terminal-input {
+    @apply bg-vault-black border border-vault-gray-800 text-vault-white font-mono text-sm p-3 focus:border-vault-white focus:outline-none;
+  }
+}
