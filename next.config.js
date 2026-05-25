@@ -3,11 +3,6 @@ const webpack = require('webpack');
 
 const nextConfig = {
   reactStrictMode: true,
-  env: {
-    NEXT_PUBLIC_PINATA_JWT: process.env.NEXT_PUBLIC_PINATA_JWT,
-    NEXT_PUBLIC_WALLETCONNECT_ID: process.env.NEXT_PUBLIC_WALLETCONNECT_ID,
-    NEXT_PUBLIC_CDR_API_URL: process.env.NEXT_PUBLIC_CDR_API_URL,
-  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
