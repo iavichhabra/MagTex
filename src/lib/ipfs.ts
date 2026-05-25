@@ -1,42 +1,37 @@
 export async function uploadJSONToIPFS(data: object): Promise<string> {
-  if (!process.env.NEXT_PUBLIC_PINATA_JWT) {
-    throw new Error("Missing NEXT_PUBLIC_PINATA_JWT environment variable. Please check your .env.local file.");
-  }
-  const response = await fetch("https://api.pinata.cloud/pinning/pinJSONToIPFS", {
+  const response = await fetch("/api/ipfs", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
     },
     body: JSON.stringify(data),
   });
+
   if (!response.ok) {
-    const errText = await response.text().catch(() => "");
-    throw new Error(`IPFS JSON upload failed with status ${response.status}: ${errText || response.statusText}`);
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.error || `JSON upload failed with status ${response.status}`);
   }
+
   const result = await response.json();
-  return result.IpfsHash;
+  return result.ipfsHash;
 }
 
 export async function uploadFileToIPFS(file: File): Promise<string> {
-  if (!process.env.NEXT_PUBLIC_PINATA_JWT) {
-    throw new Error("Missing NEXT_PUBLIC_PINATA_JWT environment variable. Please check your .env.local file.");
-  }
   const formData = new FormData();
   formData.append("file", file);
-  const response = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
+
+  const response = await fetch("/api/ipfs", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
-    },
     body: formData,
   });
+
   if (!response.ok) {
-    const errText = await response.text().catch(() => "");
-    throw new Error(`IPFS File upload failed with status ${response.status}: ${errText || response.statusText}`);
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.error || `File upload failed with status ${response.status}`);
   }
+
   const result = await response.json();
-  return result.IpfsHash;
+  return result.ipfsHash;
 }
 
 export function getIPFSUrl(hash: string): string {
