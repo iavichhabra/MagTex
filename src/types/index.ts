@@ -1,16 +1,6 @@
-export type Severity = "Critical" | "High" | "Medium" | "Low" | "Informational";
+export type Severity = "Critical" | "Severe" | "High";
 
-export type Category =
-  | "Critical Vulnerability"
-  | "High Severity Vulnerability"
-  | "Medium Severity Vulnerability"
-  | "Smart Contract Exploit"
-  | "Infrastructure Vulnerability"
-  | "Access Control Issue"
-  | "Economic Attack Vector"
-  | "Oracle Manipulation"
-  | "MEV Related Finding"
-  | "Security Research";
+export type Category = "Security Research";
 
 export interface ReportMetadata {
   title: string;

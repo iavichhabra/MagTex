@@ -12,19 +12,9 @@ import { uploadJSONToIPFS, uploadFileToIPFS } from "@/lib/ipfs";
 import { VULNVAULT_REGISTRY, VULNVAULT_ABI } from "@/lib/contracts";
 import { storyAeneid } from "@/lib/chains";
 
-const CATEGORIES: Category[] = [
-  "Critical Vulnerability",
-  "High Severity Vulnerability",
-  "Smart Contract Exploit",
-  "Infrastructure Vulnerability",
-  "Access Control Issue",
-  "Economic Attack Vector",
-  "Oracle Manipulation",
-  "MEV Related Finding",
-  "Security Research",
-];
+const CATEGORIES: Category[] = ["Security Research"];
 
-const SEVERITIES: Severity[] = ["Critical", "High", "Medium", "Low", "Informational"];
+const SEVERITIES: Severity[] = ["Critical", "Severe", "High"];
 
 // Browser-safe base64 encoding (no Node.js Buffer needed)
 function uint8ArrayToBase64(bytes: Uint8Array): string {
@@ -43,8 +33,8 @@ export function ReportForm() {
 
   const [metadata, setMetadata] = useState<ReportMetadata>({
     title: "",
-    severity: "High",
-    category: "Critical Vulnerability",
+    severity: "Severe",
+    category: "Security Research",
     affectedProject: "",
     description: "",
     price: "0.1",
@@ -192,56 +182,38 @@ export function ReportForm() {
       {step === 1 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
           <div>
-            <label className="block font-mono text-xs text-vault-gray-400 mb-2">TITLE</label>
+            <label className="block font-mono text-sm font-semibold text-vault-gray-400 mb-2">TITLE</label>
             <input
-              className="w-full border border-vault-gray-800 bg-vault-black p-3 font-mono text-sm text-vault-white focus:border-vault-white focus:outline-none"
+              className="w-full border border-vault-gray-800 bg-vault-black p-3 font-mono text-base text-vault-white focus:border-vault-white focus:outline-none"
               value={metadata.title}
               onChange={(e) => setMetadata({ ...metadata, title: e.target.value })}
               placeholder="Enter report title..."
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block font-mono text-xs text-vault-gray-400 mb-2">SEVERITY</label>
-              <select
-                className="w-full border border-vault-gray-800 bg-vault-black p-3 font-mono text-sm text-vault-white"
-                value={metadata.severity}
-                onChange={(e) =>
-                  setMetadata({ ...metadata, severity: e.target.value as Severity })
-                }
-              >
-                {SEVERITIES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block font-mono text-xs text-vault-gray-400 mb-2">CATEGORY</label>
-              <select
-                className="w-full border border-vault-gray-800 bg-vault-black p-3 font-mono text-sm text-vault-white"
-                value={metadata.category}
-                onChange={(e) =>
-                  setMetadata({ ...metadata, category: e.target.value as Category })
-                }
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div>
+            <label className="block font-mono text-sm font-semibold text-vault-gray-400 mb-2">SEVERITY</label>
+            <select
+              className="w-full border border-vault-gray-800 bg-vault-black p-3 font-mono text-base text-vault-white"
+              value={metadata.severity}
+              onChange={(e) =>
+                setMetadata({ ...metadata, severity: e.target.value as Severity })
+              }
+            >
+              {SEVERITIES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
-            <label className="block font-mono text-xs text-vault-gray-400 mb-2">
+            <label className="block font-mono text-sm font-semibold text-vault-gray-400 mb-2">
               AFFECTED PROJECT
             </label>
             <input
-              className="w-full border border-vault-gray-800 bg-vault-black p-3 font-mono text-sm text-vault-white focus:border-vault-white focus:outline-none"
+              className="w-full border border-vault-gray-800 bg-vault-black p-3 font-mono text-base text-vault-white focus:border-vault-white focus:outline-none"
               value={metadata.affectedProject}
               onChange={(e) =>
                 setMetadata({ ...metadata, affectedProject: e.target.value })
@@ -251,9 +223,9 @@ export function ReportForm() {
           </div>
 
           <div>
-            <label className="block font-mono text-xs text-vault-gray-400 mb-2">PRICE (IP)</label>
+            <label className="block font-mono text-sm font-semibold text-vault-gray-400 mb-2">PRICE (IP)</label>
             <input
-              className="w-full border border-vault-gray-800 bg-vault-black p-3 font-mono text-sm text-vault-white focus:border-vault-white focus:outline-none"
+              className="w-full border border-vault-gray-800 bg-vault-black p-3 font-mono text-base text-vault-white focus:border-vault-white focus:outline-none"
               value={metadata.price}
               onChange={(e) => setMetadata({ ...metadata, price: e.target.value })}
               type="number"
@@ -262,11 +234,11 @@ export function ReportForm() {
           </div>
 
           <div>
-            <label className="block font-mono text-xs text-vault-gray-400 mb-2">
+            <label className="block font-mono text-sm font-semibold text-vault-gray-400 mb-2">
               PUBLIC ABSTRACT
             </label>
             <textarea
-              className="w-full border border-vault-gray-800 bg-vault-black p-3 font-mono text-sm text-vault-white focus:border-vault-white focus:outline-none"
+              className="w-full border border-vault-gray-800 bg-vault-black p-3 font-mono text-base text-vault-white focus:border-vault-white focus:outline-none"
               rows={4}
               value={metadata.abstract}
               onChange={(e) => setMetadata({ ...metadata, abstract: e.target.value })}
@@ -275,11 +247,11 @@ export function ReportForm() {
           </div>
 
           <div>
-            <label className="block font-mono text-xs text-vault-gray-400 mb-2">
+            <label className="block font-mono text-sm font-semibold text-vault-gray-400 mb-2">
               FULL DESCRIPTION
             </label>
             <textarea
-              className="w-full border border-vault-gray-800 bg-vault-black p-3 font-mono text-sm text-vault-white focus:border-vault-white focus:outline-none"
+              className="w-full border border-vault-gray-800 bg-vault-black p-3 font-mono text-base text-vault-white focus:border-vault-white focus:outline-none"
               rows={6}
               value={metadata.description}
               onChange={(e) =>
@@ -290,7 +262,7 @@ export function ReportForm() {
           </div>
 
           <div>
-            <label className="block font-mono text-xs text-vault-gray-400 mb-2">
+            <label className="block font-mono text-sm font-semibold text-vault-gray-400 mb-2">
               ENCRYPTED REPORT FILE
             </label>
             <div
@@ -298,7 +270,7 @@ export function ReportForm() {
               className="flex cursor-pointer flex-col items-center gap-2 border border-dashed border-vault-gray-700 bg-vault-gray-950 p-8 hover:border-vault-gray-500"
             >
               <FileText className="h-8 w-8 text-vault-gray-500" />
-              <span className="font-mono text-xs text-vault-gray-400">
+              <span className="font-mono text-sm text-vault-gray-400">
                 {file ? file.name : "Click to upload PDF, MD, or TXT"}
               </span>
             </div>

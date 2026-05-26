@@ -11,7 +11,6 @@ export default function Marketplace() {
   const publicClient = usePublicClient();
   const [listings, setListings] = useState<Listing[]>([]);
   const [filter, setFilter] = useState("");
-  const [category, setCategory] = useState("All");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -75,46 +74,29 @@ export default function Marketplace() {
       !filter ||
       l.metadata?.title?.toLowerCase().includes(filter.toLowerCase()) ||
       l.metadata?.affectedProject?.toLowerCase().includes(filter.toLowerCase());
-    const matchesCategory =
-      category === "All" || l.metadata?.category === category;
-    return matchesFilter && matchesCategory;
+    return matchesFilter;
   });
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="font-mono text-2xl font-bold text-vault-white">MARKETPLACE</h1>
-          <p className="mt-1 font-mono text-xs text-vault-gray-500">
+          <h1 className="font-mono text-3xl font-bold text-vault-white">MARKETPLACE</h1>
+          <p className="mt-1 font-mono text-sm text-vault-gray-500">
             {listings.length} REPORTS AVAILABLE
           </p>
         </div>
 
         <div className="flex gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-vault-gray-600" />
+          <div className="relative w-64 md:w-80">
+            <Search className="absolute left-3 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-vault-gray-600" />
             <input
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               placeholder="Search projects..."
-              className="border border-vault-gray-800 bg-vault-black py-2 pl-10 pr-4 font-mono text-sm text-vault-white focus:border-vault-white focus:outline-none"
+              className="w-full border border-vault-gray-800 bg-vault-black py-2.5 pl-10 pr-4 font-mono text-base text-vault-white focus:border-vault-white focus:outline-none"
             />
           </div>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="border border-vault-gray-800 bg-vault-black px-4 py-2 font-mono text-sm text-vault-white"
-          >
-            <option value="All">All Categories</option>
-            <option value="Critical Vulnerability">Critical</option>
-            <option value="Smart Contract Exploit">Exploits</option>
-            <option value="Infrastructure Vulnerability">Infrastructure</option>
-            <option value="Access Control Issue">Access Control</option>
-            <option value="Economic Attack Vector">Economic</option>
-            <option value="Oracle Manipulation">Oracle</option>
-            <option value="MEV Related Finding">MEV</option>
-            <option value="Security Research">Research</option>
-          </select>
         </div>
       </div>
 

@@ -8,18 +8,14 @@ import { formatEther } from "viem";
 
 const SEVERITY_ICONS = {
   Critical: AlertTriangle,
-  High: AlertTriangle,
-  Medium: AlertCircle,
-  Low: Info,
-  Informational: Info,
+  Severe: AlertTriangle,
+  High: AlertCircle,
 };
 
 const SEVERITY_COLORS = {
-  Critical: "text-vault-white border-vault-white shadow-[0_0_10px_rgba(255,255,255,0.3)]",
-  High: "text-vault-gray-200 border-vault-gray-200",
-  Medium: "text-vault-gray-400 border-vault-gray-400",
-  Low: "text-vault-gray-500 border-vault-gray-500",
-  Informational: "text-vault-gray-600 border-vault-gray-600",
+  Critical: "text-vault-accent border-vault-accent shadow-[0_0_10px_rgba(188,149,104,0.3)]",
+  Severe: "text-vault-white border-vault-white",
+  High: "text-vault-gray-400 border-vault-gray-400",
 };
 
 export function ReportCard({ listing }: { listing: Listing }) {
@@ -50,13 +46,13 @@ export function ReportCard({ listing }: { listing: Listing }) {
         <div className="flex items-start justify-between relative z-10">
           <div className="flex items-center gap-3">
             <div className={`rounded border p-2 transition-all duration-300 group-hover:scale-110 ${colorClass}`}>
-              <Icon className="h-4 w-4" />
+              <Icon className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-mono text-sm font-semibold text-vault-white transition-colors group-hover:text-vault-accent">
+              <h3 className="font-mono text-base font-semibold text-vault-white transition-colors group-hover:text-vault-accent">
                 {listing.metadata?.title || "Untitled Report"}
               </h3>
-              <p className="mt-1 font-mono text-xs text-vault-gray-500 transition-colors group-hover:text-vault-gray-400">
+              <p className="mt-1 font-mono text-sm text-vault-gray-500 transition-colors group-hover:text-vault-gray-400">
                 {listing.metadata?.affectedProject || "Unknown Project"}
               </p>
             </div>
@@ -65,23 +61,18 @@ export function ReportCard({ listing }: { listing: Listing }) {
             className="flex flex-col items-end"
             whileHover={{ scale: 1.05 }}
           >
-            <span className="font-mono text-xs font-bold text-vault-gray-300 transition-colors group-hover:text-vault-white">
+            <span className="font-mono text-base font-bold text-vault-gray-300 transition-colors group-hover:text-vault-white">
               {formatEther(listing.price)}
             </span>
-            <span className="font-mono text-[10px] text-vault-gray-500">IP</span>
+            <span className="font-mono text-xs text-vault-gray-500">IP</span>
           </motion.div>
         </div>
 
         <div className="mt-auto pt-6">
           <div className="flex items-center justify-between border-t border-vault-gray-800/50 pt-3 transition-colors group-hover:border-vault-gray-700">
-            <div className="flex items-center gap-2">
-              <span className="rounded-full bg-vault-gray-900 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-vault-gray-400 transition-colors group-hover:bg-vault-gray-800 group-hover:text-vault-gray-300">
-                {listing.metadata?.category || "Security Research"}
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-vault-gray-600 transition-colors group-hover:text-vault-gray-400">
-              <Clock className="h-3 w-3" />
-              <span className="font-mono text-[10px]">
+            <div className="flex items-center gap-1.5 text-vault-gray-600 transition-colors group-hover:text-vault-gray-400">
+              <Clock className="h-3.5 w-3.5" />
+              <span className="font-mono text-xs">
                 {new Date(Number(listing.createdAt) * 1000).toLocaleDateString()}
               </span>
             </div>

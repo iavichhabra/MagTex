@@ -4,56 +4,56 @@
 
 @layer base {
   :root {
-    /* LIGHT MODE (Inverted Palette) */
-    --vault-black: #ffffff; /* pure white bg */
-    --vault-white: #111827; /* dark text */
-    --vault-accent: #8b5cf6; /* violet-500 */
-    --vault-accent-dim: #6d28d9; /* violet-700 */
-    --vault-cyan: #0891b2; /* cyan-600 */
+    /* LIGHT MODE (Beige & Camel Premium Warm Palette) */
+    --vault-black: #FAF6F0; /* luxury cream background */
+    --vault-white: #2C2219; /* dark warm brown text */
+    --vault-accent: #bc9568; /* Camel from image */
+    --vault-accent-dim: #b49a71; /* Beige from image */
+    --vault-cyan: #d4af37; /* warm golden brass */
     
-    /* Invert grays */
-    --vault-gray-50: #030712; 
-    --vault-gray-100: #111827;
-    --vault-gray-200: #1f2937;
-    --vault-gray-300: #374151;
-    --vault-gray-400: #4b5563;
-    --vault-gray-500: #6b7280;
-    --vault-gray-600: #9ca3af;
-    --vault-gray-700: #d1d5db;
-    --vault-gray-800: #e5e7eb;
-    --vault-gray-900: #f3f4f6;
-    --vault-gray-950: #f9fafb;
+    /* Grays as warm beige-chocolates */
+    --vault-gray-50: #1c1611; 
+    --vault-gray-100: #2b221a;
+    --vault-gray-200: #3b3026;
+    --vault-gray-300: #54463a;
+    --vault-gray-400: #736254;
+    --vault-gray-500: #918070;
+    --vault-gray-600: #b0a090;
+    --vault-gray-700: #cfc3b6;
+    --vault-gray-800: #e8e1d9;
+    --vault-gray-900: #f3ede5;
+    --vault-gray-950: #f9f6f2;
     
     /* Variables for specific effect adjustments */
-    --glass-bg: rgba(0, 0, 0, 0.03);
-    --glass-border: rgba(0, 0, 0, 0.08);
-    --glow-shadow: rgba(0, 0, 0, 0.1);
+    --glass-bg: rgba(44, 34, 25, 0.03);
+    --glass-border: rgba(44, 34, 25, 0.08);
+    --glow-shadow: rgba(188, 149, 104, 0.15);
   }
 
   .dark {
-    /* DARK MODE (Original Palette) */
-    --vault-black: #000000;
-    --vault-white: #ffffff;
-    --vault-accent: #a78bfa;
-    --vault-accent-dim: #7c3aed;
-    --vault-cyan: #22d3ee;
+    /* DARK MODE (Beige & Camel Premium Chocolate Palette) */
+    --vault-black: #16120e; /* luxury warm deep chocolate-black */
+    --vault-white: #FAF6F0; /* warm light cream text */
+    --vault-accent: #bc9568; /* Camel from image */
+    --vault-accent-dim: #b49a71; /* Beige from image */
+    --vault-cyan: #e2c99f; /* light warm brass */
     
-    --vault-gray-50: #f9fafb;
-    --vault-gray-100: #f3f4f6;
-    --vault-gray-200: #e5e7eb;
-    --vault-gray-300: #d1d5db;
-    --vault-gray-400: #9ca3af;
-    --vault-gray-500: #6b7280;
-    --vault-gray-600: #4b5563;
-    --vault-gray-700: #374151;
-    --vault-gray-800: #1f2937;
-    --vault-gray-900: #111827;
-    --vault-gray-950: #030712;
+    --vault-gray-50: #FAF6F0;
+    --vault-gray-100: #f3ede5;
+    --vault-gray-200: #e8e1d9;
+    --vault-gray-300: #cfc3b6;
+    --vault-gray-400: #b0a090;
+    --vault-gray-500: #918070;
+    --vault-gray-600: #736254;
+    --vault-gray-700: #54463a;
+    --vault-gray-800: #3b3026;
+    --vault-gray-900: #2b221a;
+    --vault-gray-950: #1c1611;
     
     /* Variables for specific effect adjustments */
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glow-shadow: rgba(255, 255, 255, 0.1);
+    --glass-bg: rgba(250, 246, 240, 0.03);
+    --glass-border: rgba(250, 246, 240, 0.08);
+    --glow-shadow: rgba(188, 149, 104, 0.20);
   }
 
   body {

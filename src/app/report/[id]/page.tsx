@@ -105,26 +105,26 @@ export default function ReportPage() {
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4 text-vault-gray-400" />
-              <span className="font-mono text-xs text-vault-gray-400 uppercase tracking-wider">
-                {listing.metadata?.category || "Security Research"}
+              <Shield className="h-4 w-4 text-vault-accent" />
+              <span className="font-mono text-sm font-bold text-vault-accent uppercase tracking-wider">
+                {listing.metadata?.severity || "Severe"} Severity
               </span>
             </div>
-            <h1 className="mt-2 font-mono text-2xl font-bold text-vault-white">
+            <h1 className="mt-3 font-mono text-3xl md:text-4xl font-bold text-vault-white">
               {listing.metadata?.title || "Untitled Report"}
             </h1>
-            <p className="mt-2 font-mono text-sm text-vault-gray-400">
-              {listing.metadata?.affectedProject || "Unknown Project"}
+            <p className="mt-2.5 font-mono text-base md:text-lg text-vault-gray-400">
+              Target: {listing.metadata?.affectedProject || "Unknown Project"}
             </p>
           </div>
           <div className="text-right">
-            <p className="font-mono text-2xl font-bold text-vault-white">
+            <p className="font-mono text-3xl font-bold text-vault-white">
               {formatEther(listing.price)} IP
             </p>
-            <div className="mt-2 flex items-center gap-2 text-vault-gray-500">
-              <Wallet className="h-3 w-3" />
-              <span className="font-mono text-xs">
-                {listing.seller.slice(0, 6)}...{listing.seller.slice(-4)}
+            <div className="mt-2 flex items-center gap-2 text-vault-gray-500 justify-end">
+              <Wallet className="h-3.5 w-3.5" />
+              <span className="font-mono text-sm">
+                Seller: {listing.seller.slice(0, 6)}...{listing.seller.slice(-4)}
               </span>
             </div>
           </div>
