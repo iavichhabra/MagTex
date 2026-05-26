@@ -6,6 +6,7 @@ import { VULNVAULT_REGISTRY, VULNVAULT_ABI } from "@/lib/contracts";
 import { Listing } from "@/types";
 import { ReportCard } from "@/components/report-card";
 import { BadgeDisplay } from "@/components/badge-display";
+import { ConnectX } from "@/components/connect-x";
 import { Shield, DollarSign, FileText } from "lucide-react";
 
 export default function Dashboard() {
@@ -123,6 +124,7 @@ export default function Dashboard() {
             <p className="mt-1 font-mono text-xs text-vault-gray-500">
               {address.slice(0, 6)}...{address.slice(-4)}
             </p>
+            <ConnectX />
           </div>
           <BadgeDisplay
             profile={{

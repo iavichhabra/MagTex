@@ -9,6 +9,7 @@ import { VULNVAULT_REGISTRY, VULNVAULT_ABI } from "@/lib/contracts";
 
 import { importAESKey, decryptFile } from "@/lib/crypto";
 import { getIPFSUrl } from "@/lib/ipfs";
+import { storyAeneid } from "@/lib/chains";
 
 export function ProtectedPreview({ listing }: { listing: Listing }) {
   const { address } = useAccount();
@@ -21,6 +22,14 @@ export function ProtectedPreview({ listing }: { listing: Listing }) {
   const [decryptedUrl, setDecryptedUrl] = useState("");
   const [decryptedFilename, setDecryptedFilename] = useState("report");
 
+  const [isWhitelisted, setIsWhitelisted] = useState(false);
+  const [hasExpressedInterest, setHasExpressedInterest] = useState(false);
+  const [isExpressingInterest, setIsExpressingInterest] = useState(false);
+  const [interestedBuyers, setInterestedBuyers] = useState<string[]>([]);
+  
+  const isSeller = address?.toLowerCase() === listing.seller.toLowerCase();
+  const isWhitelistOnly = listing.metadata?.isWhitelistOnly || false;
+
   const checkAccess = async () => {
     if (!address || !publicClient) return;
     try {
@@ -31,6 +40,34 @@ export function ProtectedPreview({ listing }: { listing: Listing }) {
         args: [address, BigInt(listing.id)],
       });
       setHasAccess(access);
+
+      if (isWhitelistOnly) {
+        if (!isSeller) {
+          const whitelisted = await publicClient.readContract({
+            address: VULNVAULT_REGISTRY,
+            abi: VULNVAULT_ABI,
+            functionName: "whitelistedBuyers",
+            args: [BigInt(listing.id), address],
+          });
+          setIsWhitelisted(whitelisted as boolean);
+
+          const expressed = await publicClient.readContract({
+            address: VULNVAULT_REGISTRY,
+            abi: VULNVAULT_ABI,
+            functionName: "hasExpressedInterest",
+            args: [BigInt(listing.id), address],
+          });
+          setHasExpressedInterest(expressed as boolean);
+        } else {
+          const buyers = await publicClient.readContract({
+            address: VULNVAULT_REGISTRY,
+            abi: VULNVAULT_ABI,
+            functionName: "getInterestedBuyers",
+            args: [BigInt(listing.id)],
+          });
+          setInterestedBuyers(buyers as string[]);
+        }
+      }
     } catch (err) {
       console.error("Failed to check access:", err);
     }
@@ -38,11 +75,12 @@ export function ProtectedPreview({ listing }: { listing: Listing }) {
 
   useEffect(() => {
     checkAccess();
-  }, [address, publicClient, listing.id]);
+  }, [address, publicClient, listing.id, isWhitelistOnly, isSeller]);
 
   const purchase = async () => {
     if (!walletClient || !address) return;
     await walletClient.writeContract({
+      chain: storyAeneid,
       address: VULNVAULT_REGISTRY,
       abi: VULNVAULT_ABI,
       functionName: "purchaseReport",
@@ -52,36 +90,65 @@ export function ProtectedPreview({ listing }: { listing: Listing }) {
     await checkAccess();
   };
 
+  const expressInterest = async () => {
+    if (!walletClient || !address) return;
+    setIsExpressingInterest(true);
+    try {
+      await walletClient.writeContract({
+        chain: storyAeneid,
+        address: VULNVAULT_REGISTRY,
+        abi: VULNVAULT_ABI,
+        functionName: "expressInterest",
+        args: [BigInt(listing.id)],
+      });
+      setHasExpressedInterest(true);
+    } catch (err) {
+      console.error("Failed to express interest:", err);
+    } finally {
+      setIsExpressingInterest(false);
+    }
+  };
+
+  const approveBuyer = async (buyerAddr: string) => {
+    if (!walletClient || !address) return;
+    try {
+      await walletClient.writeContract({
+        chain: storyAeneid,
+        address: VULNVAULT_REGISTRY,
+        abi: VULNVAULT_ABI,
+        functionName: "approveBuyer",
+        args: [BigInt(listing.id), buyerAddr as `0x${string}`],
+      });
+      alert("Buyer approved! They can now purchase the report.");
+    } catch (err) {
+      console.error("Failed to approve buyer:", err);
+    }
+  };
+
   const unlock = async () => {
     if (!walletClient) return;
     setUnlocking(true);
     try {
-      // The cdrUUID is actually an IPFS hash of the vault JSON
       const vaultRes = await fetch(getIPFSUrl(listing.cdrUUID));
       if (!vaultRes.ok) throw new Error("Failed to fetch vault from IPFS");
       const vaultWrapper = await vaultRes.json();
 
-      // Decode the base64-encoded vault payload
       const vaultB64 = vaultWrapper.encryptedVault;
       const vaultJsonStr = atob(vaultB64);
       const payload = JSON.parse(vaultJsonStr);
 
-      // Import the AES key from the vault payload
       const key = await importAESKey(new Uint8Array(payload.key));
 
-      // Fetch the encrypted file from IPFS
       const response = await fetch(getIPFSUrl(payload.fileHash));
       if (!response.ok) throw new Error("Failed to fetch encrypted file from IPFS");
       const encryptedBuffer = await response.arrayBuffer();
       const encryptedBytes = new Uint8Array(encryptedBuffer);
 
-      // The encrypted blob was stored as [12-byte IV | ciphertext]
       const iv = encryptedBytes.slice(0, 12);
       const ciphertext = encryptedBytes.slice(12);
 
       const decrypted = await decryptFile(ciphertext.buffer, key, iv);
 
-      // Determine filename for download
       const filename = payload.filename || "report";
       const blob = new Blob([decrypted]);
       const url = URL.createObjectURL(blob);
@@ -98,6 +165,7 @@ export function ProtectedPreview({ listing }: { listing: Listing }) {
   const sendTip = async () => {
     if (!walletClient || !tipAmount) return;
     await walletClient.writeContract({
+      chain: storyAeneid,
       address: VULNVAULT_REGISTRY,
       abi: VULNVAULT_ABI,
       functionName: "sendTip",
@@ -125,14 +193,48 @@ export function ProtectedPreview({ listing }: { listing: Listing }) {
               Full report encrypted via CDR
             </p>
             <p className="mt-2 font-mono text-xs text-vault-gray-500">
-              Purchase license to threshold-decrypt
+              {isWhitelistOnly 
+                ? "This is a whitelisted report. Seller approval required."
+                : "Purchase license to threshold-decrypt"}
             </p>
-            <button
-              onClick={purchase}
-              className="mt-6 border border-vault-white px-6 py-2 font-mono text-sm text-vault-white hover:bg-vault-white hover:text-vault-black"
-            >
-              PURCHASE FOR {formatEther(listing.price)} IP
-            </button>
+            
+            {isSeller ? (
+              <div className="mt-6 border-t border-vault-gray-800 pt-6 text-left">
+                <h4 className="font-mono text-sm font-bold text-vault-white mb-4">Interested Buyers</h4>
+                {interestedBuyers.length === 0 ? (
+                  <p className="font-mono text-xs text-vault-gray-500">No expressions of interest yet.</p>
+                ) : (
+                  <ul className="space-y-3">
+                    {interestedBuyers.map((buyer, idx) => (
+                      <li key={idx} className="flex items-center justify-between font-mono text-xs text-vault-gray-400 bg-vault-black p-3 border border-vault-gray-800">
+                        <span>{buyer.slice(0, 6)}...{buyer.slice(-4)}</span>
+                        <button 
+                          onClick={() => approveBuyer(buyer)}
+                          className="border border-vault-white px-3 py-1 hover:bg-vault-white hover:text-vault-black text-vault-white"
+                        >
+                          Approve
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ) : isWhitelistOnly && !isWhitelisted ? (
+              <button
+                onClick={expressInterest}
+                disabled={hasExpressedInterest || isExpressingInterest}
+                className="mt-6 border border-vault-white px-6 py-2 font-mono text-sm text-vault-white hover:bg-vault-white hover:text-vault-black disabled:opacity-50"
+              >
+                {isExpressingInterest ? "PROCESSING..." : hasExpressedInterest ? "INTEREST EXPRESSED" : "EXPRESS INTEREST"}
+              </button>
+            ) : (
+              <button
+                onClick={purchase}
+                className="mt-6 border border-vault-white px-6 py-2 font-mono text-sm text-vault-white hover:bg-vault-white hover:text-vault-black"
+              >
+                PURCHASE FOR {formatEther(listing.price)} IP
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-4">

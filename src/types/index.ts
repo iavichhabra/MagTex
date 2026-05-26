@@ -10,6 +10,8 @@ export interface ReportMetadata {
   description: string;
   price: string;
   abstract: string;
+  isPrivate?: boolean;
+  isWhitelistOnly?: boolean;
 }
 
 export interface Listing {

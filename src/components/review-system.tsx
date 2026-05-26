@@ -6,6 +6,8 @@ import { Star } from "lucide-react";
 import { VULNVAULT_REGISTRY, VULNVAULT_ABI } from "@/lib/contracts";
 import { Review } from "@/types";
 
+import { storyAeneid } from "@/lib/chains";
+
 export function ReviewSystem({
   listingId,
   reviews,
@@ -23,6 +25,7 @@ export function ReviewSystem({
     if (!walletClient || rating === 0) return;
     setSubmitting(true);
     await walletClient.writeContract({
+      chain: storyAeneid,
       address: VULNVAULT_REGISTRY,
       abi: VULNVAULT_ABI,
       functionName: "submitReview",

@@ -7,6 +7,7 @@ import { VULNVAULT_REGISTRY, VULNVAULT_ABI } from "@/lib/contracts";
 import { ResearcherProfile, Listing } from "@/types";
 import { ReportCard } from "@/components/report-card";
 import { BadgeDisplay } from "@/components/badge-display";
+import { ConnectX } from "@/components/connect-x";
 import { Shield, Wallet, TrendingUp, DollarSign } from "lucide-react";
 
 export default function ProfilePage() {
@@ -109,6 +110,7 @@ export default function ProfilePage() {
               {profile.address.slice(0, 6)}...{profile.address.slice(-4)}
             </h1>
             <p className="font-mono text-xs text-vault-gray-500">Security Researcher</p>
+            <ConnectX />
           </div>
         </div>
 

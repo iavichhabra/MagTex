@@ -32,6 +32,11 @@ contract VulnVaultRegistry is ReentrancyGuard {
     mapping(address => uint256) public totalEarnings;
     mapping(address => uint256) public totalTips;
 
+    mapping(uint256 => bool) public isPrivate;
+    mapping(uint256 => bool) public isWhitelistOnly;
+    mapping(uint256 => address[]) private _interestedBuyers;
+    mapping(uint256 => mapping(address => bool)) public hasExpressedInterest;
+    mapping(uint256 => mapping(address => bool)) public whitelistedBuyers;
     event ReportListed(
         uint256 indexed id,
         address indexed seller,
@@ -49,7 +54,9 @@ contract VulnVaultRegistry is ReentrancyGuard {
         string calldata cdrUUID,
         uint256 price,
         string calldata metadataURI,
-        uint256 licenseTermsId
+        uint256 licenseTermsId,
+        bool _isPrivate,
+        bool _isWhitelistOnly
     ) external returns (uint256) {
         uint256 id = ++listingCounter;
         listings[id] = Listing({
@@ -62,6 +69,8 @@ contract VulnVaultRegistry is ReentrancyGuard {
             licenseTermsId: licenseTermsId,
             createdAt: block.timestamp
         });
+        isPrivate[id] = _isPrivate;
+        isWhitelistOnly[id] = _isWhitelistOnly;
         ipIdToListing[ipId] = id;
         sellerListings[msg.sender].push(id);
         reputationScore[msg.sender]++;
@@ -76,6 +85,9 @@ contract VulnVaultRegistry is ReentrancyGuard {
         require(msg.value >= listing.price, "INSUFFICIENT");
         require(!hasAccess[msg.sender][id], "ALREADY_OWNED");
         require(listing.seller != msg.sender, "SELF_PURCHASE");
+        if (isWhitelistOnly[id]) {
+            require(whitelistedBuyers[id][msg.sender], "NOT_WHITELISTED");
+        }
 
         hasAccess[msg.sender][id] = true;
         totalEarnings[listing.seller] += msg.value;
@@ -144,6 +156,28 @@ contract VulnVaultRegistry is ReentrancyGuard {
             mstore(owned, count)
         }
         return owned;
+    }
+
+    function expressInterest(uint256 id) external {
+        require(listings[id].active, "INACTIVE");
+        require(!hasExpressedInterest[id][msg.sender], "ALREADY_INTERESTED");
+        
+        hasExpressedInterest[id][msg.sender] = true;
+        _interestedBuyers[id].push(msg.sender);
+    }
+
+    function getInterestedBuyers(uint256 id) external view returns (address[] memory) {
+        return _interestedBuyers[id];
+    }
+
+    function approveBuyer(uint256 id, address buyer) external {
+        require(listings[id].seller == msg.sender, "UNAUTHORIZED");
+        whitelistedBuyers[id][buyer] = true;
+    }
+    
+    function revokeBuyer(uint256 id, address buyer) external {
+        require(listings[id].seller == msg.sender, "UNAUTHORIZED");
+        whitelistedBuyers[id][buyer] = false;
     }
 
     receive() external payable {

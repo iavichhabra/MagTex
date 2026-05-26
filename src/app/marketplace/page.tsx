@@ -70,6 +70,7 @@ export default function Marketplace() {
   }, [publicClient]);
 
   const filtered = listings.filter((l) => {
+    if (l.metadata?.isPrivate) return false;
     const matchesFilter =
       !filter ||
       l.metadata?.title?.toLowerCase().includes(filter.toLowerCase()) ||

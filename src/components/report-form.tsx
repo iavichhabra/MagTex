@@ -39,6 +39,8 @@ export function ReportForm() {
     description: "",
     price: "0.1",
     abstract: "",
+    isPrivate: false,
+    isWhitelistOnly: false,
   });
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -134,6 +136,8 @@ export function ReportForm() {
           parseEther(metadata.price),
           metadataHash,
           BigInt(1),
+          metadata.isPrivate,
+          metadata.isWhitelistOnly,
         ],
       });
 
@@ -231,6 +235,28 @@ export function ReportForm() {
               type="number"
               step="0.01"
             />
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-6">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={metadata.isPrivate}
+                onChange={(e) => setMetadata({ ...metadata, isPrivate: e.target.checked })}
+                className="w-4 h-4 bg-vault-black border-vault-gray-800 checked:bg-vault-white"
+              />
+              <span className="font-mono text-sm text-vault-gray-400">Private Listing (Hidden from marketplace)</span>
+            </label>
+            
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={metadata.isWhitelistOnly}
+                onChange={(e) => setMetadata({ ...metadata, isWhitelistOnly: e.target.checked })}
+                className="w-4 h-4 bg-vault-black border-vault-gray-800 checked:bg-vault-white"
+              />
+              <span className="font-mono text-sm text-vault-gray-400">Whitelist Only (Require seller approval to buy)</span>
+            </label>
           </div>
 
           <div>

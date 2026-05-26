@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useState, useEffect } from "react";
-import { Terminal, Shield, LayoutDashboard, Plus, Store } from "lucide-react";
+import { Terminal, Shield, LayoutDashboard, Plus, Store, Twitter, HelpCircle } from "lucide-react";
 import { motion, useScroll } from "framer-motion";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -14,6 +14,7 @@ const NAV_LINKS = [
   { href: "/marketplace", label: "Marketplace", icon: Store },
   { href: "/submit", label: "Submit", icon: Plus },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/faq", label: "FAQ", icon: HelpCircle },
 ];
 
 export function Navbar() {
@@ -102,6 +103,14 @@ export function Navbar() {
               PROFILE
             </Link>
           )}
+          <a
+            href="https://x.com/Vulnvault"
+            target="_blank"
+            rel="noreferrer"
+            className="text-vault-gray-400 hover:text-vault-white transition-colors"
+          >
+            <Twitter className="h-5 w-5" />
+          </a>
           {mounted && (
             <>
               <ThemeToggle />
