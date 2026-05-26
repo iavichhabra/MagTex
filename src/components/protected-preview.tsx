@@ -6,7 +6,7 @@ import { parseEther, formatEther } from "viem";
 import { Lock, Unlock, Eye, Download, Send } from "lucide-react";
 import { Listing } from "@/types";
 import { VULNVAULT_REGISTRY, VULNVAULT_ABI } from "@/lib/contracts";
-import { decryptReportVault } from "@/lib/cdr-client";
+
 import { importAESKey, decryptFile } from "@/lib/crypto";
 import { getIPFSUrl } from "@/lib/ipfs";
 
@@ -19,6 +19,7 @@ export function ProtectedPreview({ listing }: { listing: Listing }) {
   const [tipAmount, setTipAmount] = useState("");
   const [showTip, setShowTip] = useState(false);
   const [decryptedUrl, setDecryptedUrl] = useState("");
+  const [decryptedFilename, setDecryptedFilename] = useState("report");
 
   const checkAccess = async () => {
     if (!address || !publicClient) return;
@@ -55,21 +56,40 @@ export function ProtectedPreview({ listing }: { listing: Listing }) {
     if (!walletClient) return;
     setUnlocking(true);
     try {
-      const vaultData = await decryptReportVault(walletClient, listing.cdrUUID);
-      const payload = JSON.parse(new TextDecoder().decode(vaultData));
+      // The cdrUUID is actually an IPFS hash of the vault JSON
+      const vaultRes = await fetch(getIPFSUrl(listing.cdrUUID));
+      if (!vaultRes.ok) throw new Error("Failed to fetch vault from IPFS");
+      const vaultWrapper = await vaultRes.json();
+
+      // Decode the base64-encoded vault payload
+      const vaultB64 = vaultWrapper.encryptedVault;
+      const vaultJsonStr = atob(vaultB64);
+      const payload = JSON.parse(vaultJsonStr);
+
+      // Import the AES key from the vault payload
       const key = await importAESKey(new Uint8Array(payload.key));
-      const iv = new Uint8Array(payload.iv);
 
+      // Fetch the encrypted file from IPFS
       const response = await fetch(getIPFSUrl(payload.fileHash));
+      if (!response.ok) throw new Error("Failed to fetch encrypted file from IPFS");
       const encryptedBuffer = await response.arrayBuffer();
-      const decrypted = await decryptFile(encryptedBuffer, key, iv);
+      const encryptedBytes = new Uint8Array(encryptedBuffer);
 
+      // The encrypted blob was stored as [12-byte IV | ciphertext]
+      const iv = encryptedBytes.slice(0, 12);
+      const ciphertext = encryptedBytes.slice(12);
+
+      const decrypted = await decryptFile(ciphertext.buffer, key, iv);
+
+      // Determine filename for download
+      const filename = payload.filename || "report";
       const blob = new Blob([decrypted]);
       const url = URL.createObjectURL(blob);
       setDecryptedUrl(url);
+      setDecryptedFilename(filename);
     } catch (err) {
       console.error("Unlock failed:", err);
-      alert("Failed to decrypt report. Ensure you have a valid license.");
+      alert("Failed to decrypt report. Please check that you have purchased a valid license and try again.");
     } finally {
       setUnlocking(false);
     }
@@ -133,13 +153,13 @@ export function ProtectedPreview({ listing }: { listing: Listing }) {
                   <Download className="h-3 w-3" />
                 )}
                 {unlocking
-                  ? "REQUESTING THRESHOLD DECRYPTION..."
+                  ? "DECRYPTING..."
                   : "DECRYPT & DOWNLOAD"}
               </button>
             ) : (
               <a
                 href={decryptedUrl}
-                download
+                download={decryptedFilename}
                 className="flex items-center gap-2 border border-vault-white bg-vault-white px-4 py-2 font-mono text-xs text-vault-black"
               >
                 <Download className="h-3 w-3" />
