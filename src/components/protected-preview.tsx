@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAccount, useWalletClient, usePublicClient } from "wagmi";
-import { parseEther } from "viem";
+import { parseEther, formatEther } from "viem";
 import { Lock, Unlock, Eye, Download, Send } from "lucide-react";
 import { Listing } from "@/types";
 import { VULNVAULT_REGISTRY, VULNVAULT_ABI } from "@/lib/contracts";
@@ -111,7 +111,7 @@ export function ProtectedPreview({ listing }: { listing: Listing }) {
               onClick={purchase}
               className="mt-6 border border-vault-white px-6 py-2 font-mono text-sm text-vault-white hover:bg-vault-white hover:text-vault-black"
             >
-              PURCHASE FOR {listing.price.toString()} IP
+              PURCHASE FOR {formatEther(listing.price)} IP
             </button>
           </div>
         ) : (
