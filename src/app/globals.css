@@ -3,8 +3,61 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* LIGHT MODE (Inverted Palette) */
+    --vault-black: #ffffff; /* pure white bg */
+    --vault-white: #111827; /* dark text */
+    --vault-accent: #8b5cf6; /* violet-500 */
+    --vault-accent-dim: #6d28d9; /* violet-700 */
+    --vault-cyan: #0891b2; /* cyan-600 */
+    
+    /* Invert grays */
+    --vault-gray-50: #030712; 
+    --vault-gray-100: #111827;
+    --vault-gray-200: #1f2937;
+    --vault-gray-300: #374151;
+    --vault-gray-400: #4b5563;
+    --vault-gray-500: #6b7280;
+    --vault-gray-600: #9ca3af;
+    --vault-gray-700: #d1d5db;
+    --vault-gray-800: #e5e7eb;
+    --vault-gray-900: #f3f4f6;
+    --vault-gray-950: #f9fafb;
+    
+    /* Variables for specific effect adjustments */
+    --glass-bg: rgba(0, 0, 0, 0.03);
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --glow-shadow: rgba(0, 0, 0, 0.1);
+  }
+
+  .dark {
+    /* DARK MODE (Original Palette) */
+    --vault-black: #000000;
+    --vault-white: #ffffff;
+    --vault-accent: #a78bfa;
+    --vault-accent-dim: #7c3aed;
+    --vault-cyan: #22d3ee;
+    
+    --vault-gray-50: #f9fafb;
+    --vault-gray-100: #f3f4f6;
+    --vault-gray-200: #e5e7eb;
+    --vault-gray-300: #d1d5db;
+    --vault-gray-400: #9ca3af;
+    --vault-gray-500: #6b7280;
+    --vault-gray-600: #4b5563;
+    --vault-gray-700: #374151;
+    --vault-gray-800: #1f2937;
+    --vault-gray-900: #111827;
+    --vault-gray-950: #030712;
+    
+    /* Variables for specific effect adjustments */
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glow-shadow: rgba(255, 255, 255, 0.1);
+  }
+
   body {
-    @apply bg-vault-black text-vault-white;
+    @apply bg-vault-black text-vault-white transition-colors duration-500;
   }
 
   ::selection {
@@ -44,7 +97,9 @@
 
   /* Glassmorphism card */
   .glass {
-    @apply bg-white/[0.03] backdrop-blur-xl border border-white/[0.08];
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px);
+    border: 1px solid var(--glass-border);
   }
 
   /* Glow border - animated */
@@ -61,9 +116,9 @@
     background: linear-gradient(
       135deg,
       transparent 20%,
-      rgba(255, 255, 255, 0.15) 40%,
-      rgba(167, 139, 250, 0.25) 50%,
-      rgba(255, 255, 255, 0.15) 60%,
+      var(--glass-border) 40%,
+      var(--vault-accent) 50%,
+      var(--glass-border) 60%,
       transparent 80%
     );
     background-size: 200% 200%;
@@ -89,11 +144,11 @@
   .btn-primary:hover {
     @apply bg-vault-gray-100;
     transform: translateY(-2px);
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2), 0 0 40px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 20px var(--glow-shadow), 0 0 40px var(--glass-border);
   }
   .btn-primary:active {
     transform: translateY(0) scale(0.98);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 10px var(--glow-shadow);
   }
 
   /* Secondary button with border animation */
@@ -108,14 +163,14 @@
     left: 50%;
     width: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, #fff, transparent);
+    background: linear-gradient(90deg, transparent, var(--vault-white), transparent);
     transition: all 0.4s ease;
     transform: translateX(-50%);
   }
   .btn-secondary:hover {
     @apply border-vault-white;
     transform: translateY(-2px);
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 15px var(--glow-shadow);
   }
   .btn-secondary:hover::after {
     width: 80%;
@@ -132,13 +187,13 @@
   .card-hover:hover {
     @apply border-vault-gray-600;
     transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.03);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1), 0 0 20px var(--glass-bg);
   }
   .card-hover::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 50%, rgba(167,139,250,0.02) 100%);
+    background: linear-gradient(135deg, var(--glass-bg) 0%, transparent 50%, rgba(167,139,250,0.02) 100%);
     opacity: 0;
     transition: opacity 0.4s ease;
     pointer-events: none;
@@ -149,7 +204,7 @@
 
   /* Animated gradient text */
   .text-gradient {
-    background: linear-gradient(135deg, #ffffff 0%, #a78bfa 50%, #22d3ee 100%);
+    background: linear-gradient(135deg, var(--vault-white) 0%, var(--vault-accent) 50%, var(--vault-cyan) 100%);
     background-size: 200% 200%;
     animation: text-shimmer 3s ease-in-out infinite;
     -webkit-background-clip: text;
@@ -160,20 +215,20 @@
   /* Cyber grid background pattern */
   .cyber-grid {
     background-image:
-      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      linear-gradient(var(--glass-bg) 1px, transparent 1px),
+      linear-gradient(90deg, var(--glass-bg) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 
   /* Animated dot grid */
   .dot-grid {
-    background-image: radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px);
+    background-image: radial-gradient(var(--glass-border) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
   /* Shimmer loading effect */
   .shimmer-bg {
-    background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.05) 50%, transparent 75%);
+    background: linear-gradient(90deg, transparent 25%, var(--glass-bg) 50%, transparent 75%);
     background-size: 200% 100%;
     animation: shimmer 2s linear infinite;
   }
@@ -185,8 +240,8 @@
       0deg,
       transparent,
       transparent 2px,
-      rgba(255,255,255,0.01) 2px,
-      rgba(255,255,255,0.01) 4px
+      var(--glass-bg) 2px,
+      var(--glass-bg) 4px
     );
   }
 
@@ -201,7 +256,7 @@
     left: 0;
     width: 0;
     height: 1px;
-    background: #fff;
+    background: var(--vault-white);
     transition: width 0.3s ease;
   }
   .hover-underline:hover::after {
@@ -221,8 +276,8 @@
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: #fff;
-    box-shadow: 0 0 8px rgba(255,255,255,0.5);
+    background: var(--vault-white);
+    box-shadow: 0 0 8px var(--glow-shadow);
   }
 }
 

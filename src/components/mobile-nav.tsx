@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Terminal, Store, Plus, LayoutDashboard } from "lucide-react";
 import { motion } from "framer-motion";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const LINKS = [
   { href: "/", icon: Terminal, label: "Home" },
@@ -59,6 +60,9 @@ export function MobileNav() {
             </Link>
           );
         })}
+        <div className="flex h-full items-center justify-center pl-2 border-l border-vault-gray-800/50">
+          <ThemeToggle />
+        </div>
       </div>
     </motion.nav>
   );

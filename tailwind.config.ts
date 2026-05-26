@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: ["class"],
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -10,23 +11,23 @@ const config: Config = {
     extend: {
       colors: {
         vault: {
-          black: "#000000",
-          white: "#ffffff",
-          accent: "#a78bfa",
-          "accent-dim": "#7c3aed",
-          cyan: "#22d3ee",
+          black: "var(--vault-black)",
+          white: "var(--vault-white)",
+          accent: "var(--vault-accent)",
+          "accent-dim": "var(--vault-accent-dim)",
+          cyan: "var(--vault-cyan)",
           gray: {
-            50: "#f9fafb",
-            100: "#f3f4f6",
-            200: "#e5e7eb",
-            300: "#d1d5db",
-            400: "#9ca3af",
-            500: "#6b7280",
-            600: "#4b5563",
-            700: "#374151",
-            800: "#1f2937",
-            900: "#111827",
-            950: "#030712",
+            50: "var(--vault-gray-50)",
+            100: "var(--vault-gray-100)",
+            200: "var(--vault-gray-200)",
+            300: "var(--vault-gray-300)",
+            400: "var(--vault-gray-400)",
+            500: "var(--vault-gray-500)",
+            600: "var(--vault-gray-600)",
+            700: "var(--vault-gray-700)",
+            800: "var(--vault-gray-800)",
+            900: "var(--vault-gray-900)",
+            950: "var(--vault-gray-950)",
           },
         },
       },

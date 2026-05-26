@@ -7,6 +7,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useState, useEffect } from "react";
 import { Terminal, Shield, LayoutDashboard, Plus, Store } from "lucide-react";
 import { motion, useScroll } from "framer-motion";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV_LINKS = [
   { href: "/", label: "Home", icon: Terminal },
@@ -102,13 +103,16 @@ export function Navbar() {
             </Link>
           )}
           {mounted && (
-            <div className="transition-transform hover:scale-105">
-              <ConnectButton
-                showBalance={false}
-                chainStatus="icon"
-                accountStatus="address"
-              />
-            </div>
+            <>
+              <ThemeToggle />
+              <div className="transition-transform hover:scale-105">
+                <ConnectButton
+                  showBalance={false}
+                  chainStatus="icon"
+                  accountStatus="address"
+                />
+              </div>
+            </>
           )}
         </div>
       </div>
