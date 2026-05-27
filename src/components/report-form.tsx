@@ -50,6 +50,7 @@ export function ReportForm() {
   const [error, setError] = useState("");
   const [whitelistedAddresses, setWhitelistedAddresses] = useState<string[]>([]);
   const [whitelistInput, setWhitelistInput] = useState("");
+  const [listingMode, setListingMode] = useState<"open" | "whitelist" | "approval">("open");
 
   const handleSubmit = async () => {
     if (!walletClient || !address) {
@@ -265,38 +266,98 @@ export function ReportForm() {
             />
           </div>
 
-          <div className="flex flex-col md:flex-row gap-6">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={metadata.isPrivate}
-                onChange={(e) => setMetadata({ ...metadata, isPrivate: e.target.checked })}
-                className="w-4 h-4 bg-vault-black border-vault-gray-800 checked:bg-vault-white"
-              />
-              <span className="font-mono text-sm text-vault-gray-400">Private Listing (Hidden from marketplace)</span>
-            </label>
-            
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={metadata.isWhitelistOnly}
-                onChange={(e) => setMetadata({ ...metadata, isWhitelistOnly: e.target.checked })}
-                className="w-4 h-4 bg-vault-black border-vault-gray-800 checked:bg-vault-white"
-              />
-              <span className="font-mono text-sm text-vault-gray-400">Whitelist Only (Pre-approve wallets that can buy)</span>
-            </label>
+          {/* PRIVATE LISTING TOGGLE */}
+          <label className="flex items-center gap-3 cursor-pointer border border-vault-gray-800 bg-vault-black p-4 hover:border-vault-gray-600 transition-colors">
+            <input
+              type="checkbox"
+              checked={metadata.isPrivate}
+              onChange={(e) => setMetadata({ ...metadata, isPrivate: e.target.checked })}
+              className="w-4 h-4 bg-vault-black border-vault-gray-800"
+            />
+            <div>
+              <span className="font-mono text-sm font-bold text-vault-white">🔗 Private Link</span>
+              <p className="font-mono text-xs text-vault-gray-500">Hidden from marketplace — only accessible via direct link</p>
+            </div>
+          </label>
+
+          {/* ACCESS CONTROL */}
+          <div>
+            <label className="block font-mono text-sm font-semibold text-vault-gray-400 mb-3">ACCESS CONTROL</label>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              {/* Option 1: Open */}
+              <button
+                type="button"
+                onClick={() => {
+                  setListingMode("open");
+                  setMetadata({ ...metadata, isWhitelistOnly: false });
+                }}
+                className={`flex flex-col gap-1 border p-4 text-left transition-colors ${
+                  listingMode === "open"
+                    ? "border-vault-white bg-vault-white/5"
+                    : "border-vault-gray-800 hover:border-vault-gray-600"
+                }`}
+              >
+                <span className="font-mono text-sm font-bold text-vault-white">🔓 Open</span>
+                <span className="font-mono text-xs text-vault-gray-500">Anyone can purchase directly</span>
+              </button>
+
+              {/* Option 2: Pre-whitelist */}
+              <button
+                type="button"
+                onClick={() => {
+                  setListingMode("whitelist");
+                  setMetadata({ ...metadata, isWhitelistOnly: true });
+                }}
+                className={`flex flex-col gap-1 border p-4 text-left transition-colors ${
+                  listingMode === "whitelist"
+                    ? "border-vault-white bg-vault-white/5"
+                    : "border-vault-gray-800 hover:border-vault-gray-600"
+                }`}
+              >
+                <span className="font-mono text-sm font-bold text-vault-white">✅ Whitelist</span>
+                <span className="font-mono text-xs text-vault-gray-500">Pre-approve specific wallet addresses</span>
+              </button>
+
+              {/* Option 3: Manual Approval */}
+              <button
+                type="button"
+                onClick={() => {
+                  setListingMode("approval");
+                  setMetadata({ ...metadata, isWhitelistOnly: true });
+                }}
+                className={`flex flex-col gap-1 border p-4 text-left transition-colors ${
+                  listingMode === "approval"
+                    ? "border-vault-white bg-vault-white/5"
+                    : "border-vault-gray-800 hover:border-vault-gray-600"
+                }`}
+              >
+                <span className="font-mono text-sm font-bold text-vault-white">🔐 Approval Required</span>
+                <span className="font-mono text-xs text-vault-gray-500">Buyers request access, you approve manually</span>
+              </button>
+            </div>
           </div>
 
-          {metadata.isWhitelistOnly && (
+          {/* Whitelist address input — only for Whitelist mode */}
+          {listingMode === "whitelist" && (
             <div className="border border-vault-gray-800 bg-vault-black p-4">
-              <p className="font-mono text-xs font-bold text-vault-gray-400 mb-3">PRE-APPROVED WALLET ADDRESSES</p>
-              <p className="font-mono text-xs text-vault-gray-600 mb-3">Only these wallets will be able to purchase this report. Leave empty to use the interest/approval flow instead.</p>
+              <p className="font-mono text-xs font-bold text-vault-gray-400 mb-1">PRE-APPROVED WALLET ADDRESSES</p>
+              <p className="font-mono text-xs text-vault-gray-600 mb-3">Only these wallets can purchase this report directly.</p>
               <div className="flex gap-2 mb-3">
                 <input
                   type="text"
                   value={whitelistInput}
                   onChange={(e) => setWhitelistInput(e.target.value)}
-                  placeholder="0x..."
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const addr = whitelistInput.trim();
+                      if (addr && addr.startsWith("0x") && !whitelistedAddresses.includes(addr)) {
+                        setWhitelistedAddresses([...whitelistedAddresses, addr]);
+                        setWhitelistInput("");
+                      }
+                    }
+                  }}
+                  placeholder="Paste wallet address (0x...)"
                   className="flex-1 border border-vault-gray-700 bg-vault-gray-950 px-3 py-2 font-mono text-xs text-vault-white focus:border-vault-white focus:outline-none"
                 />
                 <button
@@ -313,15 +374,18 @@ export function ReportForm() {
                   ADD
                 </button>
               </div>
+              {whitelistedAddresses.length === 0 && (
+                <p className="font-mono text-xs text-vault-gray-700">No addresses added yet. Add at least one wallet to whitelist.</p>
+              )}
               {whitelistedAddresses.length > 0 && (
                 <ul className="space-y-2">
                   {whitelistedAddresses.map((addr, i) => (
                     <li key={i} className="flex items-center justify-between border border-vault-gray-800 px-3 py-2">
-                      <span className="font-mono text-xs text-vault-gray-300">{addr.slice(0,6)}...{addr.slice(-4)}</span>
+                      <span className="font-mono text-xs text-vault-gray-300">{addr.slice(0, 10)}...{addr.slice(-6)}</span>
                       <button
                         type="button"
                         onClick={() => setWhitelistedAddresses(whitelistedAddresses.filter((_, j) => j !== i))}
-                        className="font-mono text-xs text-vault-gray-600 hover:text-red-400"
+                        className="font-mono text-xs text-vault-gray-600 hover:text-red-400 transition-colors"
                       >
                         REMOVE
                       </button>
@@ -331,6 +395,15 @@ export function ReportForm() {
               )}
             </div>
           )}
+
+          {/* Approval mode info box */}
+          {listingMode === "approval" && (
+            <div className="border border-vault-gray-800 bg-vault-black p-4">
+              <p className="font-mono text-xs font-bold text-vault-gray-400 mb-1">MANUAL APPROVAL MODE</p>
+              <p className="font-mono text-xs text-vault-gray-500">Buyers will see an &quot;Express Interest&quot; button on your report. You will see their wallet addresses on the report page and can approve or reject them one by one.</p>
+            </div>
+          )}
+
 
           <div>
             <label className="block font-mono text-sm font-semibold text-vault-gray-400 mb-2">
