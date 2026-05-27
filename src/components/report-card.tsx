@@ -55,6 +55,33 @@ export function ReportCard({ listing }: { listing: Listing }) {
               <p className="mt-1 font-mono text-sm text-vault-gray-500 transition-colors group-hover:text-vault-gray-400">
                 {listing.metadata?.affectedProject || "Unknown Project"}
               </p>
+              {/* Verified badge */}
+              {listing.metadata?.verified && (
+                <span className="mt-1 inline-block rounded bg-yellow-500 px-2 py-0.5 text-xs font-medium text-black">
+                  Verified
+                </span>
+              )}
+              {/* Rating stars */}
+              {typeof listing.metadata?.rating === "number" && (
+                <div className="mt-1 flex items-center space-x-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <svg
+                      key={i}
+                      className={`h-4 w-4 ${i < (listing.metadata?.rating ?? 0) ? "text-vault-accent" : "text-vault-gray-600"}`}
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.163c.969 0 1.371 1.24.588 1.81l-3.366 2.447a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118L10 15.347l-3.366 2.447c-.784.57-1.838-.197-1.539-1.118l1.286-3.957a1 1 0 00-.364-1.118L2.652 9.384c-.783-.57-.38-1.81.588-1.81h4.163a1 1 0 00.95-.69l1.286-3.957z" />
+                    </svg>
+                  ))}
+                </div>
+              )}
+              {/* View count */}
+              {typeof listing.metadata?.viewCount === "number" && (
+                <p className="mt-1 text-xs text-vault-gray-400">
+                  {listing.metadata.viewCount} views
+                </p>
+              )}
             </div>
           </div>
           <motion.div 
@@ -76,6 +103,7 @@ export function ReportCard({ listing }: { listing: Listing }) {
                 {new Date(Number(listing.createdAt) * 1000).toLocaleDateString()}
               </span>
             </div>
+            {/* Additional stats could go here */}
           </div>
         </div>
 

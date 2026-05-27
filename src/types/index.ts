@@ -12,7 +12,11 @@ export interface ReportMetadata {
   abstract: string;
   isPrivate?: boolean;
   isWhitelistOnly?: boolean;
+  viewCount?: number;
+  rating?: number;
+  verified?: boolean;
 }
+
 
 export interface Listing {
   id: number;

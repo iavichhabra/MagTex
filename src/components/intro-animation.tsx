@@ -17,8 +17,8 @@ export function IntroAnimation({ onComplete }: { onComplete: () => void }) {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    // Ultra-fast boot phase
-    const bootTimer = setTimeout(() => setPhase("messages"), 500);
+    const bootTimer = setTimeout(() => setPhase("messages"), 800);
+    // duplicate removed
     return () => clearTimeout(bootTimer);
   }, []);
 
@@ -29,12 +29,12 @@ export function IntroAnimation({ onComplete }: { onComplete: () => void }) {
       setMessageIndex((prev) => {
         if (prev >= MESSAGES.length - 1) {
           clearInterval(interval);
-          setTimeout(() => setPhase("exit"), 100);
+          setTimeout(() => setPhase("exit"), 300);
           return prev;
         }
         return prev + 1;
       });
-    }, 200);
+    }, 450);
     return () => clearInterval(interval);
   }, [phase]);
 
@@ -43,7 +43,7 @@ export function IntroAnimation({ onComplete }: { onComplete: () => void }) {
       const timer = setTimeout(() => {
         setVisible(false);
         onComplete();
-      }, 200);
+        }, 150);
       return () => clearTimeout(timer);
     }
   }, [phase, onComplete]);
