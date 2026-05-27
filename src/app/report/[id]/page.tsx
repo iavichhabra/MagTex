@@ -10,6 +10,7 @@ import { ReviewSystem } from "@/components/review-system";
 import { ArrowLeft, Shield, Clock, Wallet } from "lucide-react";
 import Link from "next/link";
 import { formatEther } from "viem";
+import { incrementListingViews } from "@/lib/analytics-utils";
 
 export default function ReportPage() {
   const { id } = useParams();
@@ -17,6 +18,12 @@ export default function ReportPage() {
   const [listing, setListing] = useState<Listing | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (id) {
+      incrementListingViews(Number(id));
+    }
+  }, [id]);
 
   useEffect(() => {
     const fetchData = async () => {
