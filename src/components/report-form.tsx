@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useAccount, useWalletClient } from "wagmi";
+import { useAccount, useWalletClient, usePublicClient } from "wagmi";
 import { parseEther } from "viem";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -28,6 +28,7 @@ function uint8ArrayToBase64(bytes: Uint8Array): string {
 export function ReportForm() {
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -47,6 +48,8 @@ export function ReportForm() {
   const [step, setStep] = useState(1);
   const [txHash, setTxHash] = useState("");
   const [error, setError] = useState("");
+  const [whitelistedAddresses, setWhitelistedAddresses] = useState<string[]>([]);
+  const [whitelistInput, setWhitelistInput] = useState("");
 
   const handleSubmit = async () => {
     if (!walletClient || !address) {
@@ -140,6 +143,31 @@ export function ReportForm() {
           metadata.isWhitelistOnly ?? false,
         ],
       });
+
+      // Auto-approve any pre-whitelisted addresses
+      if (metadata.isWhitelistOnly && whitelistedAddresses.length > 0) {
+        // We need the listing ID from events — fetch seller's latest listing ID
+        const sellerIds = await publicClient!.readContract({
+          address: VULNVAULT_REGISTRY,
+          abi: VULNVAULT_ABI,
+          functionName: "getSellerListings",
+          args: [address!],
+        }) as bigint[];
+        const newListingId = sellerIds[sellerIds.length - 1];
+        for (const addr of whitelistedAddresses) {
+          try {
+            await walletClient.writeContract({
+              chain: storyAeneid,
+              address: VULNVAULT_REGISTRY,
+              abi: VULNVAULT_ABI,
+              functionName: "approveBuyer",
+              args: [newListingId, addr as `0x${string}`],
+            });
+          } catch (e) {
+            console.warn("Failed to whitelist", addr, e);
+          }
+        }
+      }
 
       setTxHash(tx);
       setStep(7);
@@ -255,9 +283,54 @@ export function ReportForm() {
                 onChange={(e) => setMetadata({ ...metadata, isWhitelistOnly: e.target.checked })}
                 className="w-4 h-4 bg-vault-black border-vault-gray-800 checked:bg-vault-white"
               />
-              <span className="font-mono text-sm text-vault-gray-400">Whitelist Only (Require seller approval to buy)</span>
+              <span className="font-mono text-sm text-vault-gray-400">Whitelist Only (Pre-approve wallets that can buy)</span>
             </label>
           </div>
+
+          {metadata.isWhitelistOnly && (
+            <div className="border border-vault-gray-800 bg-vault-black p-4">
+              <p className="font-mono text-xs font-bold text-vault-gray-400 mb-3">PRE-APPROVED WALLET ADDRESSES</p>
+              <p className="font-mono text-xs text-vault-gray-600 mb-3">Only these wallets will be able to purchase this report. Leave empty to use the interest/approval flow instead.</p>
+              <div className="flex gap-2 mb-3">
+                <input
+                  type="text"
+                  value={whitelistInput}
+                  onChange={(e) => setWhitelistInput(e.target.value)}
+                  placeholder="0x..."
+                  className="flex-1 border border-vault-gray-700 bg-vault-gray-950 px-3 py-2 font-mono text-xs text-vault-white focus:border-vault-white focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const addr = whitelistInput.trim();
+                    if (addr && addr.startsWith("0x") && !whitelistedAddresses.includes(addr)) {
+                      setWhitelistedAddresses([...whitelistedAddresses, addr]);
+                      setWhitelistInput("");
+                    }
+                  }}
+                  className="border border-vault-white px-4 py-2 font-mono text-xs text-vault-white hover:bg-vault-white hover:text-vault-black transition-colors"
+                >
+                  ADD
+                </button>
+              </div>
+              {whitelistedAddresses.length > 0 && (
+                <ul className="space-y-2">
+                  {whitelistedAddresses.map((addr, i) => (
+                    <li key={i} className="flex items-center justify-between border border-vault-gray-800 px-3 py-2">
+                      <span className="font-mono text-xs text-vault-gray-300">{addr.slice(0,6)}...{addr.slice(-4)}</span>
+                      <button
+                        type="button"
+                        onClick={() => setWhitelistedAddresses(whitelistedAddresses.filter((_, j) => j !== i))}
+                        className="font-mono text-xs text-vault-gray-600 hover:text-red-400"
+                      >
+                        REMOVE
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
 
           <div>
             <label className="block font-mono text-sm font-semibold text-vault-gray-400 mb-2">
