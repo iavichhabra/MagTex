@@ -3,49 +3,104 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const MESSAGES = [
+  "Disclosure Without Exposure",
+  "Your vulnerabilities belong to you.",
+  "Private by default.",
+  "Sensitive research deserves private markets.",
+  "Built for security researchers.",
+];
+
 export function IntroAnimation({ onComplete }: { onComplete: () => void }) {
+  const [phase, setPhase] = useState<"boot" | "messages" | "exit">("boot");
+  const [messageIndex, setMessageIndex] = useState(0);
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    // Elegant luxurious transition: duration matches the animation time
-    const timer = setTimeout(() => {
-      setVisible(false);
-      onComplete();
-    }, 1100);
-    return () => clearTimeout(timer);
-  }, [onComplete]);
+    // Fast boot phase
+    const bootTimer = setTimeout(() => setPhase("messages"), 800);
+    return () => clearTimeout(bootTimer);
+  }, []);
+
+  useEffect(() => {
+    if (phase !== "messages") return;
+    // Fast snappy typing/terminal message sweep
+    const interval = setInterval(() => {
+      setMessageIndex((prev) => {
+        if (prev >= MESSAGES.length - 1) {
+          clearInterval(interval);
+          setTimeout(() => setPhase("exit"), 200);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 450);
+    return () => clearInterval(interval);
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase === "exit") {
+      const timer = setTimeout(() => {
+        setVisible(false);
+        onComplete();
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, onComplete]);
 
   if (!visible) return null;
 
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ x: "0%" }}
-        animate={{ x: "-100%" }}
+        initial={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed inset-y-0 left-0 right-0 z-50 bg-vault-black pointer-events-none"
-        style={{
-          boxShadow: "15px 0 50px rgba(0, 0, 0, 0.6)",
-        }}
+        transition={{ duration: 0.5 }}
+        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-vault-black"
       >
-        {/* Soft trailing atmospheric glow extending to the right */}
-        <div 
-          className="absolute top-0 bottom-0 left-full w-[250px] bg-gradient-to-r from-vault-accent/25 via-vault-accent/5 to-transparent pointer-events-none blur-lg"
-        />
+        {phase === "boot" && (
+          <div className="text-center px-6">
+            <h1
+              className="font-mono text-5xl font-black tracking-[0.35em] text-vault-white md:text-7xl lg:text-8xl animate-flicker"
+              style={{ textShadow: "0 0 30px rgba(188, 149, 104, 0.25)" }}
+            >
+              VULNVAULT
+            </h1>
+            <div className="mt-6 h-[2px] w-64 md:w-96 mx-auto bg-gradient-to-r from-transparent via-vault-accent to-transparent" />
+            <p className="mt-6 font-mono text-sm font-bold tracking-[0.25em] text-vault-accent animate-pulse md:text-base lg:text-lg">
+              DISCLOSURE WITHOUT EXPOSURE
+            </p>
+          </div>
+        )}
 
-        {/* Glowing vertical stripe on the right edge that sweeps from right to left */}
-        <div 
-          className="absolute top-0 bottom-0 right-0 w-[8px] bg-gradient-to-b from-vault-accent via-vault-cyan to-vault-accent"
-          style={{
-            boxShadow: "0 0 40px #bc9568, 0 0 15px #e2c99f",
-          }}
-        />
+        {phase === "messages" && (
+          <motion.div
+            key={messageIndex}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25 }}
+            className="text-center px-6 max-w-5xl"
+          >
+            <p className="font-mono text-2xl font-bold text-vault-accent md:text-4xl lg:text-5xl leading-tight tracking-wide">
+              {`> ${MESSAGES[messageIndex]}`}
+            </p>
+          </motion.div>
+        )}
 
-        {/* Soft internal edge light to blend the stripe with the black background */}
-        <div className="absolute top-0 bottom-0 right-[8px] w-[1px] bg-vault-white/10" />
+        {phase === "exit" && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 0, scale: 1.05 }}
+            transition={{ duration: 0.4 }}
+            className="absolute inset-0 bg-vault-black"
+          />
+        )}
+
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute inset-0 animate-scanline opacity-[0.03] bg-[linear-gradient(transparent_50%,rgba(255,255,255,0.1)_50%)] bg-[length:100%_4px]" />
+        </div>
       </motion.div>
     </AnimatePresence>
   );
 }
-
