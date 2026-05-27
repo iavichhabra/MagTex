@@ -136,8 +136,8 @@ export function ReportForm() {
           parseEther(metadata.price),
           metadataHash,
           BigInt(1),
-          metadata.isPrivate,
-          metadata.isWhitelistOnly,
+          metadata.isPrivate ?? false,
+          metadata.isWhitelistOnly ?? false,
         ],
       });
 
