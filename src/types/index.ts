@@ -15,6 +15,7 @@ export interface ReportMetadata {
   viewCount?: number;
   rating?: number;
   verified?: boolean;
+  isTippingEnabled?: boolean;
 }
 
 

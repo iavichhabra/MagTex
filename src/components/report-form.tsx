@@ -42,6 +42,7 @@ export function ReportForm() {
     abstract: "",
     isPrivate: false,
     isWhitelistOnly: false,
+    isTippingEnabled: true,
   });
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -277,6 +278,20 @@ export function ReportForm() {
             <div>
               <span className="font-mono text-sm font-bold text-vault-white">🔗 Private Link</span>
               <p className="font-mono text-xs text-vault-gray-500">Hidden from marketplace — only accessible via direct link</p>
+            </div>
+          </label>
+
+          {/* ENABLE TIPPING TOGGLE */}
+          <label className="flex items-center gap-3 cursor-pointer border border-vault-gray-800 bg-vault-black p-4 hover:border-vault-gray-600 transition-colors">
+            <input
+              type="checkbox"
+              checked={metadata.isTippingEnabled ?? true}
+              onChange={(e) => setMetadata({ ...metadata, isTippingEnabled: e.target.checked })}
+              className="w-4 h-4 bg-vault-black border-vault-gray-800"
+            />
+            <div>
+              <span className="font-mono text-sm font-bold text-vault-white">💰 Enable Tipping</span>
+              <p className="font-mono text-xs text-vault-gray-500">Allow users to tip you directly in IP on this report's details page</p>
             </div>
           </label>
 

@@ -10,24 +10,32 @@ const FAQS = [
     answer: "VulnVault is a decentralized vulnerability marketplace. Security researchers can securely upload their reports, set a price, and buyers can purchase access using Story Protocol IP and threshold decryption.",
   },
   {
-    question: "How does the 'Whitelist Only' feature work?",
-    answer: "When a seller marks a report as 'Whitelist Only', buyers cannot purchase it directly. Instead, they must click 'Express Interest'. The seller will review the interested buyers on the report page and 'Approve' them. Once approved, the buyer can purchase and decrypt the report.",
+    question: "What is the difference between a Public and a Private listing?",
+    answer: "A Public listing is visible to anyone browsing the VulnVault marketplace search and list views. A Private listing is hidden from all public views and searches, meaning it can only be accessed and purchased by users who have the direct URL link shared by the seller.",
   },
   {
-    question: "What does 'Private Listing' mean?",
-    answer: "A private listing does not appear on the public marketplace. The seller must share the direct link with you for you to view or purchase it.",
+    question: "Is the entire content of a report visible to the public?",
+    answer: "No. VulnVault separates public metadata from private contents. Only the Title, Severity, Affected Project, and Public Abstract are visible to the public. The Full Description and the original Report File are private and fully encrypted locally in your browser using AES-256 before upload. They can only be decrypted and read by authorized buyers after a successful purchase on-chain.",
   },
   {
-    question: "How are my reports kept secure?",
-    answer: "Before being uploaded to IPFS, your report is encrypted locally in your browser using an AES-256 key. Only buyers who successfully purchase the report on-chain are granted the decryption key via the Story Protocol CDR (Cross-Chain Data Rights) mechanism.",
+    question: "How does the 'Whitelist Only' access control work?",
+    answer: "When a report is marked as 'Whitelist Only' (Approval Required), buyers cannot purchase it directly. They must click 'Express Interest' to send an on-chain request. The seller reviews the list of interested wallet addresses on the report details page and can 'Approve' them. Once approved, the whitelisted buyer can complete the purchase and decrypt the report.",
   },
   {
-    question: "How do I connect my X (Twitter) account?",
-    answer: "You can connect your X account from your Dashboard or Profile page by entering your handle. This helps build reputation within the VulnVault community.",
+    question: "Can I tip a security researcher?",
+    answer: "Yes! If a researcher has enabled tipping for their report, you will see a 'Voluntary Tip' section on the report details page. You can send any amount of IP (native Story Protocol token) directly to their wallet to show appreciation for their research, regardless of whether you have purchased the report.",
   },
   {
-    question: "What token is used for payments?",
-    answer: "Payments are made in IP, the native token of the Story Protocol network.",
+    question: "How do I enable or disable tipping on my reports?",
+    answer: "When uploading a new report in the submit form, you will see an 'Enable Tipping' checkbox (turned on by default). You can uncheck this box to disable the tipping widget on that specific report page.",
+  },
+  {
+    question: "How are reports securely encrypted and decrypted?",
+    answer: "Before your report is uploaded to IPFS, it is encrypted locally in your browser using an AES-256 key. The decryption key is locked on-chain. Only buyers who make the required IP payment on-chain are granted the key via Story Protocol's CDR (Cross-Chain Data Rights) mechanism.",
+  },
+  {
+    question: "How do I connect my social handles to build trust?",
+    answer: "You can connect your X (Twitter), GitHub, HackerOne, and Immunefi accounts from the Dashboard or Profile page. Linking at least one developer/security platform (GitHub, HackerOne, Immunefi) awards you a gold 'Verified Researcher' badge to establish your reputation.",
   }
 ];
 

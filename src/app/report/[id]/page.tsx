@@ -2,22 +2,31 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { usePublicClient } from "wagmi";
+import { usePublicClient, useWalletClient } from "wagmi";
 import { VULNVAULT_REGISTRY, VULNVAULT_ABI } from "@/lib/contracts";
 import { Listing, Review } from "@/types";
 import { ProtectedPreview } from "@/components/protected-preview";
 import { ReviewSystem } from "@/components/review-system";
 import { ArrowLeft, Shield, Clock, Wallet } from "lucide-react";
 import Link from "next/link";
-import { formatEther } from "viem";
+import { formatEther, parseEther } from "viem";
 import { incrementListingViews } from "@/lib/analytics-utils";
+import { storyAeneid } from "@/lib/chains";
 
 export default function ReportPage() {
   const { id } = useParams();
   const publicClient = usePublicClient();
+  const { data: walletClient } = useWalletClient();
+  
   const [listing, setListing] = useState<Listing | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Tipping states
+  const [tipAmount, setTipAmount] = useState("1");
+  const [tipping, setTipping] = useState(false);
+  const [tipSuccess, setTipSuccess] = useState(false);
+  const [tipError, setTipError] = useState("");
 
   useEffect(() => {
     if (id) {
@@ -82,6 +91,41 @@ export default function ReportPage() {
     fetchData();
   }, [publicClient, id]);
 
+  const handleTip = async () => {
+    if (!walletClient) {
+      setTipError("Please connect your wallet first.");
+      return;
+    }
+    if (!tipAmount || Number(tipAmount) <= 0) {
+      setTipError("Please enter a valid tip amount.");
+      return;
+    }
+    if (!listing) return;
+
+    setTipping(true);
+    setTipError("");
+    setTipSuccess(false);
+
+    try {
+      const tx = await walletClient.writeContract({
+        chain: storyAeneid,
+        address: VULNVAULT_REGISTRY,
+        abi: VULNVAULT_ABI,
+        functionName: "sendTip",
+        args: [listing.seller],
+        value: parseEther(tipAmount),
+      });
+
+      setTipSuccess(true);
+      setTipAmount("1");
+    } catch (err: any) {
+      console.error(err);
+      setTipError(err?.shortMessage || err?.message || "Tipping transaction failed. Check your wallet balance.");
+    } finally {
+      setTipping(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -98,17 +142,19 @@ export default function ReportPage() {
     );
   }
 
+  const isTippingAllowed = listing.metadata?.isTippingEnabled ?? true;
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8">
       <Link
         href="/marketplace"
-        className="mb-6 flex items-center gap-2 font-mono text-xs text-vault-gray-400 hover:text-vault-white"
+        className="mb-6 flex items-center gap-2 font-mono text-xs text-vault-gray-400 hover:text-vault-white w-max"
       >
         <ArrowLeft className="h-3 w-3" />
         BACK TO MARKETPLACE
       </Link>
 
-      <div className="mb-8 border border-vault-gray-800 bg-vault-gray-950 p-6">
+      <div className="mb-8 border border-vault-gray-800 bg-vault-gray-950 p-6 rounded-lg">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <div className="flex items-center gap-2">
@@ -155,16 +201,91 @@ export default function ReportPage() {
         </div>
       </div>
 
-      <div className="mb-8 border border-vault-gray-800 bg-vault-gray-950 p-6">
+      <div className="mb-8 border border-vault-gray-800 bg-vault-gray-950 p-6 rounded-lg">
         <h2 className="mb-4 font-mono text-sm font-bold text-vault-white">PUBLIC ABSTRACT</h2>
         <p className="font-mono text-sm leading-relaxed text-vault-gray-300 whitespace-pre-wrap">
           {listing.metadata?.abstract || "No abstract provided."}
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <ProtectedPreview listing={listing} />
+        
         <ReviewSystem listingId={listing.id} reviews={reviews} />
+
+        {/* Voluntary Tipping Box */}
+        {isTippingAllowed && (
+          <div className="border border-vault-gray-800 bg-vault-gray-950 p-6 flex flex-col justify-between rounded-lg relative overflow-hidden group">
+            {/* Ambient gold glow on hover */}
+            <div className="absolute inset-0 bg-gradient-to-b from-vault-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+            <div className="relative z-10 w-full">
+              <h3 className="font-mono text-sm font-bold text-vault-white flex items-center gap-2 mb-2">
+                💰 SUPPORT THE RESEARCHER
+              </h3>
+              <p className="font-mono text-xs text-vault-gray-500 leading-relaxed mb-4">
+                Enjoyed this vulnerability research? Send a voluntary tip directly to the researcher's wallet to show appreciation.
+              </p>
+
+              {tipError && (
+                <div className="mb-3 border border-red-800 bg-red-950/50 p-2 font-mono text-[10px] text-red-400">
+                  {tipError}
+                </div>
+              )}
+
+              {tipSuccess && (
+                <div className="mb-3 border border-green-800 bg-green-950/50 p-2 font-mono text-[10px] text-green-400">
+                  🎉 Tip sent successfully! Thank you.
+                </div>
+              )}
+
+              {/* Quick tip selections */}
+              <div className="mb-4">
+                <span className="block font-mono text-[10px] text-vault-gray-500 uppercase mb-2">Select Amount</span>
+                <div className="grid grid-cols-3 gap-2">
+                  {["1", "5", "10"].map((val) => (
+                    <button
+                      key={val}
+                      onClick={() => setTipAmount(val)}
+                      className={`border py-1.5 font-mono text-xs transition-colors rounded ${
+                        tipAmount === val
+                          ? "border-vault-accent text-vault-accent bg-vault-accent/5 shadow-[0_0_8px_rgba(188,149,104,0.15)]"
+                          : "border-vault-gray-800 text-vault-gray-400 hover:border-vault-gray-600 hover:text-vault-white"
+                      }`}
+                    >
+                      {val} IP
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Custom Input */}
+              <div className="mb-6">
+                <span className="block font-mono text-[10px] text-vault-gray-500 uppercase mb-2">Custom Amount</span>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={tipAmount}
+                    onChange={(e) => setTipAmount(e.target.value)}
+                    placeholder="Enter custom IP amount"
+                    className="w-full border border-vault-gray-700 bg-vault-black py-2 pl-3 pr-10 font-mono text-xs text-vault-white focus:border-vault-white focus:outline-none"
+                    step="0.1"
+                    min="0.01"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-xs text-vault-gray-500 pointer-events-none">IP</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleTip}
+              disabled={tipping || !tipAmount || Number(tipAmount) <= 0}
+              className="w-full border border-vault-accent bg-vault-accent/10 hover:bg-vault-accent/20 py-3 font-mono text-xs font-bold text-vault-accent transition-all rounded disabled:opacity-30 relative z-10"
+            >
+              {tipping ? "SENDING TIP..." : "SEND TIP"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
