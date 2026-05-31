@@ -119,7 +119,9 @@ export function Navbar() {
                 <span className="font-mono">PROFILE</span>
               </Link>
             )}
-            <ThemeToggle />
+            <div className="hidden sm:block">
+              <ThemeToggle />
+            </div>
             {mounted && (
               <div className="transition-transform hover:scale-[1.02]">
                 <ConnectButton

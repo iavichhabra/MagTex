@@ -321,7 +321,7 @@ export default function Dashboard() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex gap-4 border-b border-vault-gray-800 pb-px">
+      <div className="mb-6 flex gap-2 md:gap-4 border-b border-vault-gray-800 pb-px overflow-x-auto whitespace-nowrap scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
         <button
           onClick={() => setActiveTab("researcher")}
           className={`border-b-2 px-6 py-3 font-mono text-xs font-bold tracking-wider uppercase transition-colors ${

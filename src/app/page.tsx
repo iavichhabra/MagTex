@@ -426,12 +426,12 @@ export default function Home() {
             {/* Right */}
             <div className="flex items-center gap-4">
               <a
-                href="https://x.com/MagTex"
+                href="https://x.com/Magtex_?s=20"
                 target="_blank"
                 rel="noreferrer"
                 className="text-vault-gray-500 hover:text-vault-accent transition-colors text-sm"
               >
-                @MagTex
+                @Magtex_
               </a>
               <span className="text-vault-gray-700 text-xs">•</span>
               <span className="font-mono text-xs text-vault-gray-600">
