@@ -3,47 +3,28 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const MESSAGES = [
-  "Disclosure Without Exposure",
-  "Your vulnerabilities belong to you.",
-  "Private by default.",
-  "Sensitive research deserves private markets.",
-  "Built for security researchers.",
-];
+const LETTERS = "MAGTEX".split("");
 
 export function IntroAnimation({ onComplete }: { onComplete: () => void }) {
-  const [phase, setPhase] = useState<"boot" | "messages" | "exit">("boot");
-  const [messageIndex, setMessageIndex] = useState(0);
+  const [phase, setPhase] = useState<"logo" | "tagline" | "exit">("logo");
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    const bootTimer = setTimeout(() => setPhase("messages"), 800);
-    // duplicate removed
-    return () => clearTimeout(bootTimer);
+    // Logo shows for 1s, then tagline for 0.6s, then exit
+    const taglineTimer = setTimeout(() => setPhase("tagline"), 900);
+    const exitTimer = setTimeout(() => setPhase("exit"), 1600);
+    return () => {
+      clearTimeout(taglineTimer);
+      clearTimeout(exitTimer);
+    };
   }, []);
-
-  useEffect(() => {
-    if (phase !== "messages") return;
-    // Fast snappy typing/terminal message sweep
-    const interval = setInterval(() => {
-      setMessageIndex((prev) => {
-        if (prev >= MESSAGES.length - 1) {
-          clearInterval(interval);
-          setTimeout(() => setPhase("exit"), 300);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 450);
-    return () => clearInterval(interval);
-  }, [phase]);
 
   useEffect(() => {
     if (phase === "exit") {
       const timer = setTimeout(() => {
         setVisible(false);
         onComplete();
-        }, 150);
+      }, 400);
       return () => clearTimeout(timer);
     }
   }, [phase, onComplete]);
@@ -58,48 +39,61 @@ export function IntroAnimation({ onComplete }: { onComplete: () => void }) {
         transition={{ duration: 0.5 }}
         className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-vault-black"
       >
-        {phase === "boot" && (
-          <div className="text-center px-6">
-            <h1
-              className="font-mono text-5xl font-black tracking-[0.35em] text-vault-white md:text-7xl lg:text-8xl animate-flicker"
-              style={{ textShadow: "0 0 30px rgba(188, 149, 104, 0.25)" }}
+        {/* Ambient glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-vault-accent/10 rounded-full blur-[120px] animate-pulse" />
+
+        {/* Staggered letter reveal */}
+        <div className="relative flex items-center gap-1 md:gap-2">
+          {LETTERS.map((letter, i) => (
+            <motion.span
+              key={i}
+              initial={{ opacity: 0, y: 30, rotateX: -90 }}
+              animate={{ opacity: 1, y: 0, rotateX: 0 }}
+              transition={{
+                duration: 0.5,
+                delay: i * 0.08,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="font-display text-5xl md:text-7xl lg:text-8xl font-black tracking-[0.15em] text-vault-white"
+              style={{ textShadow: "0 0 40px rgba(188, 149, 104, 0.3)" }}
             >
-              VULNVAULT
-            </h1>
-            <div className="mt-6 h-[2px] w-64 md:w-96 mx-auto bg-gradient-to-r from-transparent via-vault-accent to-transparent" />
-            <p className="mt-6 font-mono text-sm font-bold tracking-[0.25em] text-vault-accent animate-pulse md:text-base lg:text-lg">
-              DISCLOSURE WITHOUT EXPOSURE
-            </p>
-          </div>
-        )}
+              {letter}
+            </motion.span>
+          ))}
+        </div>
 
-        {phase === "messages" && (
-          <motion.div
-            key={messageIndex}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-            className="text-center px-6 max-w-5xl"
-          >
-            <p className="font-mono text-2xl font-bold text-vault-accent md:text-4xl lg:text-5xl leading-tight tracking-wide">
-              {`> ${MESSAGES[messageIndex]}`}
-            </p>
-          </motion.div>
-        )}
+        {/* Accent line */}
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 0.6, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-6 h-[2px] w-48 md:w-64 bg-gradient-to-r from-transparent via-vault-accent to-transparent origin-center"
+        />
 
+        {/* Tagline */}
+        <AnimatePresence>
+          {(phase === "tagline" || phase === "exit") && (
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mt-5 font-mono text-xs md:text-sm font-medium tracking-[0.3em] text-vault-accent uppercase"
+            >
+              Disclosure Without Exposure
+            </motion.p>
+          )}
+        </AnimatePresence>
+
+        {/* Exit fade */}
         {phase === "exit" && (
           <motion.div
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 0, scale: 1.05 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
             className="absolute inset-0 bg-vault-black"
           />
         )}
-
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute inset-0 animate-scanline opacity-[0.03] bg-[linear-gradient(transparent_50%,rgba(255,255,255,0.1)_50%)] bg-[length:100%_4px]" />
-        </div>
       </motion.div>
     </AnimatePresence>
   );

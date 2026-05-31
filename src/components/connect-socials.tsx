@@ -175,7 +175,7 @@ export function ConnectSocials() {
                     type="text"
                     value={xVal}
                     onChange={(e) => setXVal(e.target.value)}
-                    placeholder="e.g. VulnVault"
+                    placeholder="e.g. MagTex"
                     className="w-full border border-vault-gray-700 bg-vault-black px-3 py-2 font-mono text-xs text-vault-white focus:border-vault-white focus:outline-none"
                   />
                 </div>

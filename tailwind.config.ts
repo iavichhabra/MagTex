@@ -11,29 +11,30 @@ const config: Config = {
     extend: {
       colors: {
         vault: {
-          black: "var(--vault-black)",
-          white: "var(--vault-white)",
-          accent: "var(--vault-accent)",
-          "accent-dim": "var(--vault-accent-dim)",
-          cyan: "var(--vault-cyan)",
+          black: "color-mix(in srgb, var(--vault-black) calc(<alpha-value> * 100%), transparent)",
+          white: "color-mix(in srgb, var(--vault-white) calc(<alpha-value> * 100%), transparent)",
+          accent: "color-mix(in srgb, var(--vault-accent) calc(<alpha-value> * 100%), transparent)",
+          "accent-dim": "color-mix(in srgb, var(--vault-accent-dim) calc(<alpha-value> * 100%), transparent)",
+          cyan: "color-mix(in srgb, var(--vault-cyan) calc(<alpha-value> * 100%), transparent)",
           gray: {
-            50: "var(--vault-gray-50)",
-            100: "var(--vault-gray-100)",
-            200: "var(--vault-gray-200)",
-            300: "var(--vault-gray-300)",
-            400: "var(--vault-gray-400)",
-            500: "var(--vault-gray-500)",
-            600: "var(--vault-gray-600)",
-            700: "var(--vault-gray-700)",
-            800: "var(--vault-gray-800)",
-            900: "var(--vault-gray-900)",
-            950: "var(--vault-gray-950)",
+            50: "color-mix(in srgb, var(--vault-gray-50) calc(<alpha-value> * 100%), transparent)",
+            100: "color-mix(in srgb, var(--vault-gray-100) calc(<alpha-value> * 100%), transparent)",
+            200: "color-mix(in srgb, var(--vault-gray-200) calc(<alpha-value> * 100%), transparent)",
+            300: "color-mix(in srgb, var(--vault-gray-300) calc(<alpha-value> * 100%), transparent)",
+            400: "color-mix(in srgb, var(--vault-gray-400) calc(<alpha-value> * 100%), transparent)",
+            500: "color-mix(in srgb, var(--vault-gray-500) calc(<alpha-value> * 100%), transparent)",
+            600: "color-mix(in srgb, var(--vault-gray-600) calc(<alpha-value> * 100%), transparent)",
+            700: "color-mix(in srgb, var(--vault-gray-700) calc(<alpha-value> * 100%), transparent)",
+            800: "color-mix(in srgb, var(--vault-gray-800) calc(<alpha-value> * 100%), transparent)",
+            900: "color-mix(in srgb, var(--vault-gray-900) calc(<alpha-value> * 100%), transparent)",
+            950: "color-mix(in srgb, var(--vault-gray-950) calc(<alpha-value> * 100%), transparent)",
           },
         },
       },
       fontFamily: {
-        mono: ["var(--font-geist-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
-        sans: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["'Satoshi'", "var(--font-geist-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["'JetBrains Mono'", "var(--font-geist-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
+        display: ["'Satoshi'", "system-ui", "sans-serif"],
       },
       animation: {
         flicker: "flicker 0.15s ease-in-out 3",
@@ -42,6 +43,7 @@ const config: Config = {
         blink: "blink 1s step-end infinite",
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
         float: "float 6s ease-in-out infinite",
+        "float-gentle": "float-gentle 5s ease-in-out infinite",
         shimmer: "shimmer 2s linear infinite",
         "fade-in-up": "fade-in-up 0.6s ease-out forwards",
         "fade-in-down": "fade-in-down 0.5s ease-out forwards",
@@ -51,6 +53,9 @@ const config: Config = {
         "pulse-ring": "pulse-ring 1.5s cubic-bezier(0.215,0.61,0.355,1) infinite",
         "text-shimmer": "text-shimmer 3s ease-in-out infinite",
         "border-glow": "border-glow-spin 4s linear infinite",
+        "pulse-glow": "pulse-glow 3s ease-in-out infinite",
+        "gradient-shift": "gradient-shift 8s ease-in-out infinite",
+        "slide-reveal": "slide-reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards",
       },
       keyframes: {
         flicker: {
@@ -79,6 +84,10 @@ const config: Config = {
         float: {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-10px)" },
+        },
+        "float-gentle": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-8px)" },
         },
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },
@@ -116,6 +125,19 @@ const config: Config = {
           "0%": { backgroundPosition: "0% 50%" },
           "50%": { backgroundPosition: "100% 50%" },
           "100%": { backgroundPosition: "0% 50%" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { boxShadow: "0 0 8px var(--glow-shadow), 0 0 20px rgba(188, 149, 104, 0.05)" },
+          "50%": { boxShadow: "0 0 20px var(--glow-shadow), 0 0 50px rgba(188, 149, 104, 0.12)" },
+        },
+        "gradient-shift": {
+          "0%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+          "100%": { backgroundPosition: "0% 50%" },
+        },
+        "slide-reveal": {
+          "0%": { opacity: "0", transform: "translateY(30px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
     },

@@ -15,7 +15,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div className="h-9 w-9 rounded-md border border-vault-gray-800 bg-vault-gray-950 p-2" />
+      <div className="h-9 w-9 rounded-xl border border-vault-gray-800 bg-vault-gray-950 p-2" />
     );
   }
 
@@ -26,7 +26,7 @@ export function ThemeToggle() {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-md border border-vault-gray-800 bg-vault-gray-950 text-vault-gray-400 transition-colors hover:border-vault-gray-600 hover:text-vault-white"
+      className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-vault-gray-800 bg-vault-gray-950 text-vault-gray-400 transition-colors hover:border-vault-accent/30 hover:text-vault-accent"
       aria-label="Toggle theme"
     >
       <motion.div
@@ -34,6 +34,7 @@ export function ThemeToggle() {
         animate={{
           y: isDark ? 0 : 24,
           opacity: isDark ? 1 : 0,
+          rotate: isDark ? 0 : -90,
         }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
         className="absolute"
@@ -45,6 +46,7 @@ export function ThemeToggle() {
         animate={{
           y: isDark ? -24 : 0,
           opacity: isDark ? 0 : 1,
+          rotate: isDark ? 90 : 0,
         }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
         className="absolute"
