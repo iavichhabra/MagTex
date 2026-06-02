@@ -20,7 +20,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="preload" href="/magtex_promo.mp4" as="video" type="video/mp4" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -32,54 +31,100 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-vault-black text-vault-white antialiased">
-        {/* Instant Vanilla Preloader Wrapper — Shielded from React Hydration */}
+        {/* Pure CSS MAGTEX Intro — zero downloads, instant render */}
         <div
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `
-              <div
-                id="vanilla-preloader"
-                style="position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background-color: #16120e; overflow: hidden; transition: opacity 0.6s ease-in-out;"
-              >
-                <video
-                  id="vanilla-preloader-video"
-                  src="/magtex_promo.mp4"
-                  autoplay
-                  muted
-                  playsinline
-                  preload="auto"
-                  style="width: 100%; height: 100%; object-fit: contain; max-width: 80rem; max-height: 100vh; opacity: 0; transition: opacity 0.3s ease-in-out;"
-                ></video>
+              <style>
+                @keyframes mgx-letter-in {
+                  0% { opacity: 0; transform: translateY(40px) scale(0.8); filter: blur(8px); }
+                  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+                }
+                @keyframes mgx-tagline-in {
+                  0% { opacity: 0; transform: translateY(10px); }
+                  100% { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes mgx-glow-pulse {
+                  0%, 100% { text-shadow: 0 0 20px rgba(188,149,104,0.0); }
+                  50% { text-shadow: 0 0 40px rgba(188,149,104,0.3), 0 0 80px rgba(188,149,104,0.1); }
+                }
+                @keyframes mgx-line-expand {
+                  0% { transform: scaleX(0); }
+                  100% { transform: scaleX(1); }
+                }
+                @keyframes mgx-fade-out {
+                  0% { opacity: 1; }
+                  100% { opacity: 0; visibility: hidden; }
+                }
+                #mgx-preloader {
+                  position: fixed; inset: 0; z-index: 99999;
+                  display: flex; flex-direction: column; align-items: center; justify-content: center;
+                  background: #16120e;
+                  animation: mgx-fade-out 0.6s ease-in-out 2.6s forwards;
+                }
+                #mgx-preloader .mgx-letters {
+                  display: flex; gap: 2px; align-items: center;
+                }
+                #mgx-preloader .mgx-letter {
+                  font-family: 'Satoshi', system-ui, sans-serif;
+                  font-size: clamp(2.5rem, 8vw, 5rem);
+                  font-weight: 900;
+                  color: #FAF6F0;
+                  letter-spacing: 0.08em;
+                  opacity: 0;
+                  animation: mgx-letter-in 0.5s cubic-bezier(0.16,1,0.3,1) forwards,
+                             mgx-glow-pulse 2s ease-in-out 0.8s 1;
+                }
+                #mgx-preloader .mgx-letter:nth-child(1) { animation-delay: 0.1s, 0.8s; }
+                #mgx-preloader .mgx-letter:nth-child(2) { animation-delay: 0.18s, 0.88s; }
+                #mgx-preloader .mgx-letter:nth-child(3) { animation-delay: 0.26s, 0.96s; }
+                #mgx-preloader .mgx-letter:nth-child(4) { animation-delay: 0.34s, 1.04s; }
+                #mgx-preloader .mgx-letter:nth-child(5) { animation-delay: 0.42s, 1.12s; }
+                #mgx-preloader .mgx-letter:nth-child(6) { animation-delay: 0.50s, 1.20s; }
+                #mgx-preloader .mgx-line {
+                  width: 80px; height: 1px;
+                  background: linear-gradient(90deg, transparent, #bc9568, transparent);
+                  margin: 16px 0;
+                  transform-origin: center;
+                  transform: scaleX(0);
+                  animation: mgx-line-expand 0.6s cubic-bezier(0.16,1,0.3,1) 0.7s forwards;
+                }
+                #mgx-preloader .mgx-tagline {
+                  font-family: 'Satoshi', system-ui, sans-serif;
+                  font-size: clamp(0.65rem, 2vw, 0.8rem);
+                  font-weight: 400;
+                  color: rgba(250,246,240,0.4);
+                  letter-spacing: 0.25em;
+                  text-transform: uppercase;
+                  opacity: 0;
+                  animation: mgx-tagline-in 0.5s ease-out 1.0s forwards;
+                }
+              </style>
+              <div id="mgx-preloader">
+                <div class="mgx-letters">
+                  <span class="mgx-letter">M</span>
+                  <span class="mgx-letter">A</span>
+                  <span class="mgx-letter">G</span>
+                  <span class="mgx-letter">T</span>
+                  <span class="mgx-letter">E</span>
+                  <span class="mgx-letter">X</span>
+                </div>
+                <div class="mgx-line"></div>
+                <div class="mgx-tagline">Disclosure Without Exposure</div>
               </div>
               <script>
                 (function() {
-                  var preloader = document.getElementById('vanilla-preloader');
-                  var video = document.getElementById('vanilla-preloader-video');
-                  
                   if (window.location.pathname !== '/') {
-                    if (preloader) preloader.style.display = 'none';
+                    var p = document.getElementById('mgx-preloader');
+                    if (p) p.style.display = 'none';
                     return;
                   }
-
-                  if (preloader && video) {
-                    video.onplaying = function() {
-                      video.style.opacity = '1';
-                    };
-
-                    var dismissed = false;
-                    function dismissPreloader() {
-                      if (dismissed) return;
-                      dismissed = true;
-                      preloader.style.opacity = '0';
-                      setTimeout(function() {
-                        preloader.style.display = 'none';
-                        document.documentElement.classList.remove('preloader-active');
-                      }, 600);
-                    }
-
-                    video.onended = dismissPreloader;
-                    // Fallback: 4.5s
-                    setTimeout(dismissPreloader, 4500);
-                  }
+                  setTimeout(function() {
+                    document.documentElement.classList.remove('preloader-active');
+                    var p = document.getElementById('mgx-preloader');
+                    if (p) setTimeout(function() { p.remove(); }, 700);
+                  }, 2800);
                 })();
               </script>
             `
