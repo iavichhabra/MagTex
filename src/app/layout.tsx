@@ -32,73 +32,57 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-vault-black text-vault-white antialiased">
-        {/* Instant Vanilla Preloader */}
+        {/* Instant Vanilla Preloader Wrapper — Shielded from React Hydration */}
         <div
-          id="vanilla-preloader"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#16120e',
-            overflow: 'hidden',
-            transition: 'opacity 0.6s ease-in-out',
-          }}
-        >
-          <video
-            id="vanilla-preloader-video"
-            src="/magtex_promo.mp4"
-            autoPlay
-            muted
-            playsInline
-            preload="auto"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              maxWidth: '80rem',
-              maxHeight: '100vh',
-              opacity: 0,
-              transition: 'opacity 0.3s ease-in-out',
-            }}
-          />
-        </div>
-        <script
           dangerouslySetInnerHTML={{
             __html: `
-              (function() {
-                var preloader = document.getElementById('vanilla-preloader');
-                var video = document.getElementById('vanilla-preloader-video');
-                
-                if (window.location.pathname !== '/') {
-                  if (preloader) preloader.style.display = 'none';
-                  return;
-                }
-
-                if (preloader && video) {
-                  video.onplaying = function() {
-                    video.style.opacity = '1';
-                  };
-
-                  var dismissed = false;
-                  function dismissPreloader() {
-                    if (dismissed) return;
-                    dismissed = true;
-                    preloader.style.opacity = '0';
-                    setTimeout(function() {
-                      preloader.style.display = 'none';
-                      document.documentElement.classList.remove('preloader-active');
-                    }, 600);
+              <div
+                id="vanilla-preloader"
+                style="position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background-color: #16120e; overflow: hidden; transition: opacity 0.6s ease-in-out;"
+              >
+                <video
+                  id="vanilla-preloader-video"
+                  src="/magtex_promo.mp4"
+                  autoplay
+                  muted
+                  playsinline
+                  preload="auto"
+                  style="width: 100%; height: 100%; object-fit: contain; max-width: 80rem; max-height: 100vh; opacity: 0; transition: opacity 0.3s ease-in-out;"
+                ></video>
+              </div>
+              <script>
+                (function() {
+                  var preloader = document.getElementById('vanilla-preloader');
+                  var video = document.getElementById('vanilla-preloader-video');
+                  
+                  if (window.location.pathname !== '/') {
+                    if (preloader) preloader.style.display = 'none';
+                    return;
                   }
 
-                  video.onended = dismissPreloader;
-                  // Fallback: 4.5s
-                  setTimeout(dismissPreloader, 4500);
-                }
-              })();
-            `,
+                  if (preloader && video) {
+                    video.onplaying = function() {
+                      video.style.opacity = '1';
+                    };
+
+                    var dismissed = false;
+                    function dismissPreloader() {
+                      if (dismissed) return;
+                      dismissed = true;
+                      preloader.style.opacity = '0';
+                      setTimeout(function() {
+                        preloader.style.display = 'none';
+                        document.documentElement.classList.remove('preloader-active');
+                      }, 600);
+                    }
+
+                    video.onended = dismissPreloader;
+                    // Fallback: 4.5s
+                    setTimeout(dismissPreloader, 4500);
+                  }
+                })();
+              </script>
+            `
           }}
         />
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
