@@ -2,10 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { motion, useInView, useMotionValue, useTransform, useScroll } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { Shield, Eye, ChevronRight, Lock, FileKey, Users, Zap, ArrowRight, Globe, KeyRound } from "lucide-react";
 import { IntroAnimation } from "@/components/intro-animation";
-import { PromoVideoSection } from "@/components/promo-video-section";
 import { usePublicClient } from "wagmi";
 import { formatEther } from "viem";
 import { VULNVAULT_REGISTRY, VULNVAULT_ABI } from "@/lib/contracts";
@@ -273,8 +272,7 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-vault-black to-transparent pointer-events-none" />
       </section>
 
-      {/* ═══════════════════ SECTION 1.5 — PROMO VIDEO ═══════════════════ */}
-      <PromoVideoSection />
+
 
       {/* ═══════════════════ SECTION 2 — STATS ═══════════════════ */}
       <section className="relative border-y border-vault-gray-800/50 bg-vault-gray-950/30 backdrop-blur-sm">
