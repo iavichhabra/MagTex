@@ -23,8 +23,12 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              if (window.location.pathname === '/') {
-                document.documentElement.classList.add('preloader-active');
+              try {
+                if (window.location.pathname === '/' && !sessionStorage.getItem('mgx-preloaded')) {
+                  document.documentElement.classList.add('preloader-active');
+                }
+              } catch (e) {
+                console.error(e);
               }
             `,
           }}
@@ -58,10 +62,14 @@ export default function RootLayout({
                   100% { opacity: 0; visibility: hidden; }
                 }
                 #mgx-preloader {
+                  display: none;
                   position: fixed; inset: 0; z-index: 99999;
-                  display: flex; flex-direction: column; align-items: center; justify-content: center;
+                  flex-direction: column; align-items: center; justify-content: center;
                   background: #16120e;
                   animation: mgx-fade-out 0.6s ease-in-out 2.6s forwards;
+                }
+                html.preloader-active #mgx-preloader {
+                  display: flex;
                 }
                 #mgx-preloader .mgx-letters {
                   display: flex; gap: 2px; align-items: center;
@@ -115,14 +123,19 @@ export default function RootLayout({
               </div>
               <script>
                 (function() {
-                  if (window.location.pathname !== '/') {
-                    var p = document.getElementById('mgx-preloader');
-                    if (p) p.style.display = 'none';
-                    return;
+                  var p = document.getElementById('mgx-preloader');
+                  try {
+                    if (window.location.pathname !== '/' || sessionStorage.getItem('mgx-preloaded')) {
+                      if (p) p.style.display = 'none';
+                      document.documentElement.classList.remove('preloader-active');
+                      return;
+                    }
+                    sessionStorage.setItem('mgx-preloaded', 'true');
+                  } catch (e) {
+                    console.error(e);
                   }
                   setTimeout(function() {
                     document.documentElement.classList.remove('preloader-active');
-                    var p = document.getElementById('mgx-preloader');
                     if (p) setTimeout(function() { p.remove(); }, 700);
                   }, 2800);
                 })();
