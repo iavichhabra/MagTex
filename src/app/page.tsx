@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
 import { Shield, Eye, ChevronRight, Lock, FileKey, Users, Zap, ArrowRight, Globe, KeyRound } from "lucide-react";
-import { IntroAnimation } from "@/components/intro-animation";
 import { usePublicClient } from "wagmi";
 import { formatEther } from "viem";
 import { VULNVAULT_REGISTRY, VULNVAULT_ABI } from "@/lib/contracts";
@@ -98,7 +97,6 @@ const FEATURES = [
 ];
 
 export default function Home() {
-  const [introComplete, setIntroComplete] = useState(false);
   const publicClient = usePublicClient();
   const [stats, setStats] = useState({
     reportsListed: 0,
@@ -190,10 +188,6 @@ export default function Home() {
 
   return (
     <>
-      {!introComplete && (
-        <IntroAnimation onComplete={() => setIntroComplete(true)} />
-      )}
-
       {/* ═══════════════════ SECTION 1 — HERO ═══════════════════ */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
         {/* Background effects */}
