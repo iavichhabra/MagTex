@@ -1,36 +1,22 @@
 "use client";
 
 import { ReactNode, useState, useEffect } from "react";
-import { RainbowKitProvider, connectorsForWallets, darkTheme, lightTheme } from "@rainbow-me/rainbowkit";
-import { metaMaskWallet, coinbaseWallet, walletConnectWallet } from "@rainbow-me/rainbowkit/wallets";
+import { RainbowKitProvider, darkTheme, lightTheme } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { WagmiProvider, createConfig, http } from "wagmi";
+import { injected } from "wagmi/connectors";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { storyAeneid } from "@/lib/chains";
 import { useTheme } from "next-themes";
 
-const walletConnectId = process.env.NEXT_PUBLIC_WALLETCONNECT_ID || "";
-const isValidWalletConnectId = /^[0-9a-fA-F]{32}$/.test(walletConnectId);
-
-const wallets = isValidWalletConnectId 
-  ? [metaMaskWallet, coinbaseWallet, walletConnectWallet]
-  : [metaMaskWallet, coinbaseWallet];
-
-const connectors = connectorsForWallets(
-  [
-    {
-      groupName: "Recommended",
-      wallets: wallets,
-    },
-  ],
-  {
-    appName: "MagTex",
-    projectId: isValidWalletConnectId ? walletConnectId : "0123456789abcdef0123456789abcdef",
-  }
-);
-
+// Use wagmi's native injected() connector only.
+// This completely avoids WalletConnect WebSocket initialization,
+// which crashes in dev mode when the relay rejects invalid project IDs
+// or when the network blocks WebSocket connections.
 const config = createConfig({
-  connectors,
+  connectors: [
+    injected(),
+  ],
   chains: [storyAeneid],
   transports: {
     [storyAeneid.id]: http(),

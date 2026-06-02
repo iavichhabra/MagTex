@@ -403,6 +403,16 @@
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     letter-spacing: -0.02em;
   }
+
+  /* Hide layout and page elements when preloader is active to prevent flashes */
+  .preloader-active main,
+  .preloader-active nav,
+  .preloader-active footer,
+  .preloader-active a[aria-label="X (formerly Twitter)"] {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+  }
 }
 
 /* Utility: animate on scroll - delay classes */
