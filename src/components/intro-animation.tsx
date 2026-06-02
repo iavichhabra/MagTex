@@ -1,17 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function IntroAnimation({ onComplete }: { onComplete: () => void }) {
   const [phase, setPhase] = useState<"play" | "exit">("play");
   const [visible, setVisible] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // Safety fallback: if video doesn't trigger onEnded within 8.5s, exit
+    // Safety fallback: if video doesn't trigger onEnded within 4s, exit
     const fallbackTimer = setTimeout(() => {
       setPhase("exit");
     }, 4000);
+
+    // Attempt programmatic play to detect autoplay blocking
+    if (videoRef.current) {
+      videoRef.current.play().catch((err) => {
+        console.warn("Autoplay blocked or failed, skipping intro:", err);
+        // Autoplay blocked, immediately exit so user doesn't wait
+        setPhase("exit");
+      });
+    }
 
     return () => clearTimeout(fallbackTimer);
   }, []);
@@ -39,12 +50,18 @@ export function IntroAnimation({ onComplete }: { onComplete: () => void }) {
           transition={{ duration: 0.6, ease: "easeInOut" }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-[#16120e] overflow-hidden"
         >
-          <video
+          <motion.video
+            ref={videoRef}
             src="/magtex_promo.mp4"
             autoPlay
             muted
             playsInline
+            preload="auto"
+            onPlaying={() => setIsPlaying(true)}
             onEnded={() => setPhase("exit")}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isPlaying ? 1 : 0 }}
+            transition={{ duration: 0.3 }}
             className="w-full h-full object-contain max-w-7xl max-h-screen"
           />
         </motion.div>
