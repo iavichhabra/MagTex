@@ -6,8 +6,8 @@ import imageio
 # Configuration
 WIDTH, HEIGHT = 1920, 1080
 FPS = 30
-DURATION = 8  # seconds
-TOTAL_FRAMES = DURATION * FPS
+DURATION = 3.5  # seconds (snappy 3.5 seconds instead of 8 seconds)
+TOTAL_FRAMES = int(DURATION * FPS)
 
 # Colors
 BG_COLOR = (22, 18, 14)          # #16120e - Deep warm chocolate
@@ -26,7 +26,6 @@ def generate_frame(frame_num):
     
     # Try to load a sans-serif font, fallback to default
     try:
-        # On Windows, try Arial or Segoe UI
         font_large = ImageFont.truetype("segui-black.ttf", 140)
         font_small = ImageFont.truetype("segoeui.ttf", 48)
     except Exception:
@@ -40,31 +39,27 @@ def generate_frame(frame_num):
     # Calculate center
     cx, cy = WIDTH // 2, HEIGHT // 2
     
-    # 1. Circle expansion animation (0s to 3s)
-    if time < 3.0:
-        progress = min(1.0, time / 2.0)
+    # 1. Circle expansion animation (0s to 1.5s)
+    if time < 1.5:
+        progress = min(1.0, time / 1.0)
         eased = ease_in_out_cubic(progress)
         radius = eased * 800
-        opacity = int(255 * (1.0 - progress))
         if radius > 0:
-            # Draw circle (simulation of glow/expansion)
             for r in range(int(radius), int(radius)+4):
                 draw.ellipse([cx-r, cy-r, cx+r, cy+r], outline=ACCENT_COLOR)
     
-    # 2. Main Text fade in (1.5s onwards)
-    if time > 1.5:
-        text_progress = min(1.0, (time - 1.5) / 2.0)
+    # 2. Main Text fade in (0.8s onwards)
+    if time > 0.8:
+        text_progress = min(1.0, (time - 0.8) / 1.0)
         text_eased = ease_in_out_cubic(text_progress)
         
-        # We simulate fade by interpolating color towards TEXT_COLOR
+        # Interpolate color
         r = int(BG_COLOR[0] + (TEXT_COLOR[0] - BG_COLOR[0]) * text_eased)
         g = int(BG_COLOR[1] + (TEXT_COLOR[1] - BG_COLOR[1]) * text_eased)
         b = int(BG_COLOR[2] + (TEXT_COLOR[2] - BG_COLOR[2]) * text_eased)
         current_text_color = (r, g, b)
         
-        # Draw MAGTEX
         text = "MAGTEX"
-        # Get bounding box for text
         try:
             left, top, right, bottom = font_large.getbbox(text)
             tw = right - left
@@ -74,9 +69,9 @@ def generate_frame(frame_num):
             
         draw.text((cx - tw//2, cy - th//2 - 40), text, font=font_large, fill=current_text_color)
         
-        # Subtitle fade in (3s onwards)
-        if time > 3.0:
-            sub_progress = min(1.0, (time - 3.0) / 1.5)
+        # Subtitle fade in (1.8s onwards)
+        if time > 1.8:
+            sub_progress = min(1.0, (time - 1.8) / 0.8)
             sub_eased = ease_in_out_cubic(sub_progress)
             
             sr = int(BG_COLOR[0] + (ACCENT_COLOR[0] - BG_COLOR[0]) * sub_eased)
@@ -93,10 +88,9 @@ def generate_frame(frame_num):
                 
             draw.text((cx - stw//2, cy + 60), sub_text, font=font_small, fill=current_sub_color)
             
-    # 3. Fade out at the end (last 1.5s)
-    if time > DURATION - 1.5:
-        fade_out = (time - (DURATION - 1.5)) / 1.5
-        # draw a rect with opacity (simulated by blending bg color)
+    # 3. Fade out at the end (last 0.8s)
+    if time > DURATION - 0.8:
+        fade_out = min(1.0, (time - (DURATION - 0.8)) / 0.8)
         overlay = Image.new('RGB', (WIDTH, HEIGHT), BG_COLOR)
         img = Image.blend(img, overlay, fade_out)
 
@@ -106,11 +100,17 @@ def generate_frame(frame_num):
 print("Starting video generation...")
 output_path = os.path.join("public", "magtex_promo.mp4")
 
-# Ensure public dir exists
 os.makedirs("public", exist_ok=True)
 
 try:
-    writer = imageio.get_writer(output_path, fps=FPS, codec='libx264', quality=8)
+    # Use output_params to move MOOV atom to the beginning (faststart) for web optimization
+    writer = imageio.get_writer(
+        output_path, 
+        fps=FPS, 
+        codec='libx264', 
+        quality=8, 
+        output_params=['-movflags', '+faststart']
+    )
     
     for i in range(TOTAL_FRAMES):
         if i % 30 == 0:

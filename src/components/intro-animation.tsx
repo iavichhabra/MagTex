@@ -11,7 +11,7 @@ export function IntroAnimation({ onComplete }: { onComplete: () => void }) {
     // Safety fallback: if video doesn't trigger onEnded within 8.5s, exit
     const fallbackTimer = setTimeout(() => {
       setPhase("exit");
-    }, 8500);
+    }, 4000);
 
     return () => clearTimeout(fallbackTimer);
   }, []);
